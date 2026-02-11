@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Assessment Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f7f8fa;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .quiz-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .question-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .options {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f3f4f6;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .option:hover {
+            background: #e5e7eb;
+        }
+
+        .option.selected {
+            background: #e0e7ff;
+            border-color: #6366f1;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 0.75rem;
+        }
+
+        #submit-quiz {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #2563EB;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            transition: all 0.2s;
+        }
+
+        #submit-quiz:hover {
+            background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #e5e7eb;
+            z-index: 1000;
+        }
+
+        .progress {
+            height: 100%;
+            background: #2563EB;
+            transition: width 0.3s ease;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+        }
+
+        .result-header {
+            font-size: 1.5rem;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .result-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat {
+            background: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-top: 0.25rem;
+        }
+
+        .close-btn {
+            background: #2563EB;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .close-btn:hover {
+            background: #1d4ed8;
+        }
+
+        @media (max-width: 640px) {
+            .quiz-container {
+                margin: 1rem auto;
+            }
+
+            .question-card {
+                padding: 1rem;
+            }
+
+            #submit-quiz {
+                bottom: 1rem;
+                right: 1rem;
+                padding: 0.75rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar">
+        <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="quiz-container" id="quiz-container">
+        <!-- Questions will be inserted here -->
+    </div>
+
+    <button id="submit-quiz">Submit Quiz</button>
+
+    <div class="modal" id="result-modal">
+        <div class="modal-content">
+            <div class="result-header">Quiz Results</div>
+            <div class="result-stats">
+                <div class="stat">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value" id="score">0/0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Percentage</div>
+                    <div class="stat-value" id="percentage">0%</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Correct Answers</div>
+                    <div class="stat-value" id="correct-answers">0</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-label">Time Taken</div>
+                    <div class="stat-value" id="time-taken">0:00</div>
+                </div>
+            </div>
+            <button class="close-btn" id="continue-btn">Continue to Dashboard</button>
+        </div>
+    </div>
+
+    <script>
+        let startTime = Date.now();
+        let quizData = null;
+        const totalQuestions = 25; // Number of questions to generate
+
+        // Get subject from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const subject = urlParams.get('subject');
+
+        // Function to update progress bar
+        function updateProgress() {
+            const answered = document.querySelectorAll('.option.selected').length;
+            const progress = (answered / totalQuestions) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+        }
+
+        // Function to generate quiz
+        async function generateQuiz() {
+            try {
+                const response = await fetch('/quiz/generate-assessment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        subject: subject,
+                        num_questions: totalQuestions
+                    })
+                });
+
+                quizData = await response.json();
+                displayQuestions(quizData);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to generate quiz');
+            }
+        }
+
+        // Function to display questions
+        function displayQuestions(questions) {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            questions.forEach((q, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'question-card';
+                
+                questionCard.innerHTML = `
+                    <div class="question-text">${index + 1}. ${q.question}</div>
+                    <div class="options">
+                        ${q.options.map((option, i) => `
+                            <label class="option">
+                                <input type="radio" name="q${index}" value="${option}">
+                                ${option}
+                            </label>
+                        `).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(questionCard);
+            });
+
+            // Add event listeners for option selection
+            document.querySelectorAll('.option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const questionCard = this.closest('.question-card');
+                    questionCard.querySelectorAll('.option').forEach(opt => 
+                        opt.classList.remove('selected')
+                    );
+                    this.classList.add('selected');
+                    updateProgress();
+                });
+            });
+        }
+
+        // Function to calculate results
+        function calculateResults() {
+            if (!quizData) return;
+            
+            const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+            let score = 0;
+            
+            quizData.forEach((q, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                if (selected && selected.value === q.correct_answer) {
+                    score++;
+                }
+            });
+
+            const percentage = (score / quizData.length) * 100;
+            
+            // Update modal with results
+            document.getElementById('score').textContent = `${score}/${quizData.length}`;
+            document.getElementById('percentage').textContent = `${percentage.toFixed(1)}%`;
+            document.getElementById('correct-answers').textContent = score;
+            document.getElementById('time-taken').textContent = formatTime(timeSpent);
+            
+            // Show modal
+            document.getElementById('result-modal').style.display = 'flex';
+
+            // Store last result so Continue button can send and wait before redirect
+            window.__lastQuizResult = {
+                score: score,
+                total: quizData.length,
+                percentage: Number(percentage.toFixed(2)),
+                time_taken: timeSpent,
+                subject: subject || null
+            };
+        }
+
+        // Function to format time
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        // Function to redirect to dashboard
+        function redirectToDashboard() {
+            window.location.href = '/api/';
+        }
+
+        // Send stored result to server and redirect (called by Continue button)
+        async function sendResultAndRedirect() {
+            const btn = document.getElementById('continue-btn');
+            btn.disabled = true;
+            const originalText = btn.textContent;
+            btn.textContent = 'Saving...';
+
+            const payload = window.__lastQuizResult;
+            if (!payload) {
+                // nothing to send, just redirect
+                redirectToDashboard();
+                return;
+            }
+
+            try {
+                const resp = await fetch('/quiz/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!resp.ok) {
+                    console.error('Failed to save quiz result to server', await resp.text());
+                    // still redirect, but could also show an error
+                }
+            } catch (err) {
+                console.error('Error sending quiz result:', err);
+            } finally {
+                // Restore button text briefly then redirect
+                btn.textContent = originalText;
+                redirectToDashboard();
+            }
+        }
+
+        // Wire continue button
+        document.addEventListener('DOMContentLoaded', () => {
+            const cont = document.getElementById('continue-btn');
+            if (cont) cont.addEventListener('click', sendResultAndRedirect);
+        });
+
+        // Event listener for submit button
+        document.getElementById('submit-quiz').addEventListener('click', () => {
+            const answered = document.querySelectorAll('.option.selected').length;
+            if (answered < totalQuestions) {
+                if (!confirm(`You have only answered ${answered} out of ${totalQuestions} questions. Are you sure you want to submit?`)) {
+                    return;
+                }
+            }
+            calculateResults();
+        });
+
+        // Generate quiz when page loads
+        generateQuiz();
+    </script>
+</body>
+</html>

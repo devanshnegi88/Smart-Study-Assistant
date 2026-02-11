@@ -40,6 +40,9 @@ def create_app():
     from app.form.routes import preferences_bp
     app.register_blueprint(preferences_bp)
 
+    from app.quizzes.assessment_routes import assessment_bp
+    app.register_blueprint(assessment_bp)
+
     @app.route('/')
     
     def home():

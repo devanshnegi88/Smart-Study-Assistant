@@ -286,5 +286,38 @@ body {
   </div>
 </div>
 
+<script>
+let startTime = Date.now();
+
+// Auto track time spent on the page
+window.addEventListener("beforeunload", () => {
+  const duration = (Date.now() - startTime) / 60000; // minutes
+  fetch("/planner/track-time", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ subject: document.title || "General", duration })
+  });
+});
+
+// Example for chatbot (send when user finishes session)
+function logChatUsage(questions = 5) {
+  fetch("/planner/log-chat-usage", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ questions })
+  });
+}
+
+// Example for quiz completion
+function logQuiz(score) {
+  fetch("/planner/log-quiz", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ score })
+  });
+}
+</script>
+
+
 </body>
 </html>

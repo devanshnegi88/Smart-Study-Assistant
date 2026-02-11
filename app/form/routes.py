@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, session
 from app.models import form_collection
 
 preferences_bp = Blueprint('preferences', __name__)

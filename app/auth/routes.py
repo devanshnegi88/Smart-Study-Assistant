@@ -1,5 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
+from werkzeug.security import generate_password_hash, check_password_hash
+from bson import ObjectId
 from app.models import users_collection  # Your MongoDB collection
+from datetime import datetime
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -10,9 +13,13 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
 
-        user = users_collection.find_one({'email': email, 'password': password})
-        if user:
-            session['user'] = email
+        user = users_collection.find_one({'email': email})
+        if user and check_password_hash(user.get('password', ''), password):
+            # Store session with consistent format
+            user_id_str = str(user['_id'])
+            session['user_id'] = user_id_str
+            session['user'] = {'id': user_id_str, 'email': email}
+            flash("Login successful!", "success")
             return redirect(url_for('dashboard.dashboard'))  # redirect to dashboard
         else:
             flash("Invalid credentials. Please try again.", "error")
@@ -38,13 +45,25 @@ def signup():
             flash("User already exists. Please login.", "error")
             return render_template("signup.html")
 
-        users_collection.insert_one({
+        # Hash password and insert
+        hashed_password = generate_password_hash(password)
+        result = users_collection.insert_one({
             'name': name,
             'email': email,
-            'password': password
+            'password': hashed_password,
+            'study_time': {},
+            'study_streak': 0,
+            'quizzes_done': 0,
+            'average_score': 0,
+            'created_at': datetime.utcnow()
         })
 
-        session['user'] = email
+        # Store session with user_id and user dict
+        user_id_str = str(result.inserted_id)
+        session['user_id'] = user_id_str
+        session['user'] = {'id': user_id_str, 'email': email}
+        
+        flash("Signup successful! Choose how to set up your dashboard.", "success")
         return redirect(url_for('auth.option'))
 
     return render_template("signup.html")
@@ -75,5 +94,7 @@ def forgot():
 # Logout
 @auth_bp.route('/logout')
 def logout():
+    session.pop('user_id', None)
     session.pop('user', None)
+    flash("Logged out successfully!", "success")
     return redirect(url_for('auth.login'))

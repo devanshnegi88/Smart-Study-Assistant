@@ -1,63 +1,633 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quiz Generator</title>
-</head>
-<body>
-    <div class="slider" id="slider">
-  <h2>Menu</h2>
-  <div class="menu">
-    <button onclick="window.location.href='/'">Home</button><br>
-    <button onclick="window.location.href='/dashboard/'">Dashboard</button><br>
-    <button onclick="window.location.href='/planner/'">Planner</button><br>
-    <button onclick="window.location.href='/chatbot/'">AI Chatbot</button><br>
-    <button onclick="window.location.href='/quizzes'">AI Quizzes</button><br>
-    <button onclick="window.location.href='/notes_sumariser/'">Notes Summariser</button><br>
-    <button onclick="window.location.href='/reminders/'">Reminder</button><br>
-    <button onclick="window.location.href='/progress/'">Progress</button><br>
-    <button onclick="window.location.href='/auth/logout'">Logout</button><br>
-    
-  </div>
-</div>
-  <h2>Generate Quiz</h2>
-  <input type="text" id="topic" placeholder="Enter topic">
-  <input type="number" id="num" placeholder="Number of questions" min="1" max="20">
-  <button onclick="generateQuiz()">Generate</button>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f7f8fa;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
 
-  <div id="quiz-output"></div>
+    .navbar {
+      background-color: #2563EB;
+      color: white;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
 
-  <script>
-    async function generateQuiz() {
-      const topic = document.getElementById("topic").value;
-      const num = document.getElementById("num").value;
+    /* Sidebar styling */
+    .slider {
+      width: 200px;
+      height: 100vh;
+      background-color: #2563EB;
+      position: fixed;
+      top: 0;
+      left: 0;
+      transform: translateX(-200px);
+      transition: transform 0.4s ease-in-out;
+      color: white;
+      padding-top: 60px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 10px;
+      box-sizing: border-box;
+    }
 
-      const res = await fetch("/quiz/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, num_questions: num })
-      });
+    body.open .slider {
+      transform: translateX(0);
+    }
 
-      const data = await res.json();
-      const output = document.getElementById("quiz-output");
+    .slider h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-weight: 600;
+      font-size: 1.4rem;
+    }
 
-      if (data.error) {
-        output.innerHTML = `<p style="color:red">${data.error}</p>`;
-      } else if (data.quiz) {
-        output.innerHTML = data.quiz.map((q, i) => `
-          <div>
-            <p><b>Q${i+1}:</b> ${q.question}</p>
-            <ul>
-              ${q.options.map(opt => `<li>${opt}</li>`).join("")}
-            </ul>
-            <p><i>Answer: ${q.correct_answer}</i></p>
-          </div>
-        `).join("");
-      } else if (data.raw) {
-        output.innerHTML = `<pre>${data.raw}</pre>`;
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 0;
+    }
+
+    .menu button {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 12px 16px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .menu button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      color: white;
+      transform: translateX(5px);
+    }
+
+    .menu button.active {
+      background: rgba(255, 255, 255, 0.25);
+      border-left: 3px solid white;
+      padding-left: 13px;
+    }
+
+    .logout-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logout-btn:hover {
+      background: rgba(248, 113, 113, 0.3);
+      border-color: rgba(248, 113, 113, 0.5);
+      color: #fecaca;
+    }
+
+    body.open .content {
+      margin-left: 200px;
+    }
+
+    .slidbtn {
+      position: relative;
+      display: inline-block;
+      margin-right: 10px;
+      z-index: 1001;
+    }
+
+    .slidbtn button {
+      width: 40px;
+      height: 40px;
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      border-radius: 5px;
+      transition: background 0.2s;
+    }
+
+    .slidbtn button:hover {
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+
+    .navbar h1 {
+      margin: 0 auto;
+      font-size: 1.5rem;
+    }
+
+    .back-button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 5rem auto 2rem;
+      padding: 0 1rem;
+    }
+
+    .quiz-setup {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    #quiz-form button {
+      background: #2563EB;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      width: 100%;
+    }
+
+    #quiz-form button:hover {
+      background: #1d4ed8;
+    }
+
+    .quiz-questions {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: none;
+    }
+
+    .question {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .question h3 {
+      color: #1f2937;
+      margin-bottom: 1rem;
+    }
+
+    .options {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem;
+      background: #f3f4f6;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .option:hover {
+      background: #e5e7eb;
+    }
+
+    .option input[type="radio"] {
+      margin-right: 0.75rem;
+      width: auto;
+    }
+
+    .option.correct {
+      background: #dcfce7;
+      border: 1px solid #22c55e;
+    }
+
+    .option.incorrect {
+      background: #fee2e2;
+      border: 1px solid #ef4444;
+    }
+
+    .option.selected {
+      background: #e0e7ff;
+      border: 1px solid #6366f1;
+    }
+
+    #submit-quiz {
+      background: #2563EB;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      width: 100%;
+      transition: background-color 0.2s;
+    }
+
+    #submit-quiz:hover {
+      background: #1d4ed8;
+    }
+
+    .result {
+      text-align: center;
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      background: #f3f4f6;
+    }
+
+    .result-header {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+
+    .result-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .stat {
+      background: white;
+      padding: 1rem;
+      border-radius: 0.375rem;
+      text-align: center;
+    }
+
+    .stat-label {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin-top: 0.25rem;
+    }
+
+    .timer {
+      position: fixed;
+      top: 4.5rem;
+      right: 1rem;
+      background: #2563EB;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      font-size: 1.25rem;
+      font-weight: 500;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      z-index: 10;
+      display: none;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 2rem;
+      height: 2rem;
+      border: 0.25rem solid #e5e7eb;
+      border-top-color: #2563EB;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        margin-top: 4rem;
+        padding: 0 0.5rem;
+      }
+
+      .quiz-setup, .quiz-questions {
+        padding: 1rem;
+      }
+
+      .timer {
+        top: auto;
+        bottom: 1rem;
+        right: 1rem;
+        font-size: 1rem;
+      }
+
+      .stat {
+        padding: 0.75rem;
       }
     }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="slidbtn">
+      <button onclick="slidbar()">☰</button>
+    </div>
+    <button class="back-button" onclick="location.href='/api/'">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h1>Quiz Generator</h1>
+  </nav>
+
+  <!-- Sidebar -->
+  <div class="slider" id="slider">
+    <h2>Menu</h2>
+    <div class="menu">
+      <button class="nav-btn" onclick="location.href='/api'"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
+      <button class="nav-btn" onclick="location.href='/planner'"><i class="fa-regular fa-calendar"></i> Planner</button>
+      <button class="nav-btn" onclick="location.href='/chatbot'"><i class="fa-regular fa-message"></i> Chatbot</button>
+      <button class="nav-btn" onclick="location.href='/notes_sumariser'"><i class="fa-solid fa-book"></i> Video to Notes</button>
+      <button class="nav-btn" onclick="location.href='/quiz'"><i class="fa-solid fa-medal"></i> Quizzes</button>
+      <button class="nav-btn" onclick="location.href='/reminders'"><i class="fa-solid fa-medal"></i> Reminders</button>
+      <div style="margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+        <a href="/auth/logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="content" id="content">
+
+  <div id="timer" class="timer">Time: 00:00</div>
+
+    <div class="container">
+      <div class="quiz-setup">
+      <form id="quiz-form">
+        <div class="form-group">
+          <label for="subject">Subject:</label>
+          <input type="text" id="subject" placeholder="Enter any subject (e.g., Physics, Literature, Programming)" required>
+        </div>
+
+        <div class="form-group">
+          <label for="topic">Topic:</label>
+          <input type="text" id="topic" placeholder="Enter specific topic" required>
+        </div>
+
+        <div class="form-group">
+          <label for="num_questions">Number of Questions:</label>
+          <input type="number" id="num_questions" min="1" max="20" value="5" required>
+        </div>
+
+        <button type="submit">Generate Quiz</button>
+      </form>
+    </div>
+
+    <div id="loading" class="loading" style="display: none;">
+      <div class="spinner"></div>
+      <p>Generating your quiz...</p>
+    </div>
+
+    <div class="quiz-questions" id="quiz-container">
+      <div id="questions"></div>
+      <button id="submit-quiz" style="display: none;">Submit Quiz</button>
+      <div class="result" id="result"></div>
+    </div>
+  </div>
+
+  <script>
+    // Sidebar toggle function
+    function slidbar() {
+      document.body.classList.toggle('open');
+    }
+
+    // Close sidebar when clicking on content
+    document.addEventListener('click', function(event) {
+      const slider = document.getElementById('slider');
+      const slidbtn = document.querySelector('.slidbtn');
+      if (!slider.contains(event.target) && !slidbtn.contains(event.target)) {
+        if (document.body.classList.contains('open')) {
+          document.body.classList.remove('open');
+        }
+      }
+    });
+
+    // Mark active menu button based on current path
+    (function markActiveButtons() {
+      try {
+        const path = window.location.pathname.replace(/\/$/, '');
+        document.querySelectorAll('.menu button').forEach(btn => {
+          const onclick = btn.getAttribute('onclick');
+          if (onclick && onclick.includes('location.href')) {
+            const match = onclick.match(/location\.href='([^']+)'/);
+            const url = match ? match[1].replace(/\/$/, '') : null;
+            if (url === path) {
+              btn.classList.add('active');
+            } else {
+              btn.classList.remove('active');
+            }
+          }
+        });
+      } catch (e) {
+        console.warn('Could not mark active menu:', e);
+      }
+    })();
+
+    // Quiz generation and submission logic
+    let quizData = [];
+    let startTime = 0;
+    let timerInterval = null;
+
+    document.getElementById('quiz-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const subject = document.getElementById('subject').value;
+      const topic = document.getElementById('topic').value;
+      const num_questions = parseInt(document.getElementById('num_questions').value);
+
+      if (!subject || !topic) {
+        alert('Please fill in all fields');
+        return;
+      }
+
+      // Show loading, hide form
+      document.querySelector('.quiz-setup').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('timer').style.display = 'block';
+
+      try {
+        const res = await fetch('/quiz/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subject, topic, num_questions })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        
+        quizData = await res.json();
+
+        // Hide loading, show quiz
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('quiz-container').style.display = 'block';
+        renderQuiz(quizData);
+
+        // Start timer
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 1000);
+      } catch (err) {
+        console.error('Error:', err);
+        alert('Failed to generate quiz: ' + err.message);
+        document.querySelector('.quiz-setup').style.display = 'block';
+        document.getElementById('loading').style.display = 'none';
+      }
+    });
+
+    function renderQuiz(questions) {
+      const container = document.getElementById('questions');
+      container.innerHTML = '';
+
+      questions.forEach((q, idx) => {
+        const div = document.createElement('div');
+        div.className = 'question';
+        div.innerHTML = `
+          <h3>Q${idx + 1}: ${q.question}</h3>
+          <div class="options">
+            ${q.options.map((opt, i) => `
+              <label class="option">
+                <input type="radio" name="q${idx}" value="${opt}" />
+                ${opt}
+              </label>
+            `).join('')}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+
+      document.getElementById('submit-quiz').style.display = 'block';
+    }
+
+    function updateTimer() {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const mins = Math.floor(elapsed / 60);
+      const secs = elapsed % 60;
+      document.getElementById('timer').textContent = `Time: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    document.getElementById('submit-quiz').addEventListener('click', async () => {
+      const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+      clearInterval(timerInterval);
+
+      let correct = 0;
+      quizData.forEach((q, idx) => {
+        const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+        const option = document.querySelector(`.question:nth-child(${idx + 1})`);
+        
+        if (selected) {
+          if (selected.value === q.correct_answer) {
+            correct++;
+            option.querySelector(`input[value="${selected.value}"]`).parentElement.classList.add('correct');
+          } else {
+            option.querySelector(`input[value="${selected.value}"]`).parentElement.classList.add('incorrect');
+          }
+        }
+        
+        // Show correct answer
+        const correctOption = option.querySelector(`input[value="${q.correct_answer}"]`);
+        if (correctOption && !correctOption.checked) {
+          correctOption.parentElement.classList.add('correct');
+        }
+      });
+
+      const percentage = Math.round((correct / quizData.length) * 100);
+      const subject = document.getElementById('subject').value;
+
+      // Show result
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `
+        <div class="result-header">Quiz Complete!</div>
+        <div class="result-stats">
+          <div class="stat">
+            <div class="stat-label">Score</div>
+            <div class="stat-value">${correct}/${quizData.length}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Percentage</div>
+            <div class="stat-value">${percentage}%</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Time</div>
+            <div class="stat-value">${Math.floor(timeTaken / 60)}m ${timeTaken % 60}s</div>
+          </div>
+        </div>
+      `;
+      resultDiv.style.display = 'block';
+
+      document.getElementById('submit-quiz').style.display = 'none';
+
+      // Send result to backend
+      try {
+        await fetch('/quiz/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subject,
+            score: percentage,
+            total: quizData.length,
+            correct,
+            time_taken: timeTaken
+          })
+        });
+      } catch (err) {
+        console.error('Error saving quiz result:', err);
+      }
+    });
   </script>
-</body>
-</html>
+  

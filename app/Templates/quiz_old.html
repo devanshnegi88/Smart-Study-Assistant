@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Generator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f7f8fa;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+
+    .navbar {
+      background-color: #2563EB;
+      color: white;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .navbar h1 {
+      margin: 0 auto;
+      font-size: 1.5rem;
+    }
+
+    .back-button {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .quiz-setup {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    select, input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+    }
+
+    #quiz-form button {
+      background: #2563EB;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    #quiz-form button:hover {
+      background: #1d4ed8;
+    }
+
+    .quiz-questions {
+      background: white;
+      border-radius: 10px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      display: none;
+    }
+
+    .question {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .question h3 {
+      color: #1f2937;
+      margin-bottom: 1rem;
+    }
+
+    .options {
+      display: grid;
+      gap: 0.5rem;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem;
+      background: #f3f4f6;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .option:hover {
+      background: #e5e7eb;
+    }
+
+    .option input[type="radio"] {
+      margin-right: 0.75rem;
+      width: auto;
+    }
+
+    #submit-quiz {
+      background: #2563EB;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-top: 1rem;
+      width: 100%;
+    }
+
+    #submit-quiz:hover {
+      background: #1d4ed8;
+    }
+
+    .result {
+      text-align: center;
+      margin-top: 1rem;
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <button class="back-button" onclick="location.href='/dashboard'">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <h1>Quiz Generator</h1>
+  </nav>
+
+  <div id="timer" class="timer" style="display: none;">Time: 00:00</div>
+
+  <div class="container">
+    <div class="quiz-setup">
+      <form id="quiz-form">
+        <div class="form-group">
+          <label for="subject">Subject:</label>
+          <select id="subject" required>
+            <option value="">Select a subject</option>
+            <option value="mathematics">Mathematics</option>
+            <option value="science">Science</option>
+            <option value="history">History</option>
+            <option value="english">English</option>
+            <option value="computer_science">Computer Science</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="topic">Topic:</label>
+          <input type="text" id="topic" placeholder="Enter specific topic" required>
+        </div>
+
+        <div class="form-group">
+          <label for="num_questions">Number of Questions:</label>
+          <input type="number" id="num_questions" min="1" max="20" value="5" required>
+        </div>
+
+        <button type="submit">Generate Quiz</button>
+      </form>
+    </div>
+
+    <div class="quiz-questions" id="quiz-container">
+      <div id="questions"></div>
+      <button id="submit-quiz" style="display: none;">Submit Quiz</button>
+      <div class="result" id="result"></div>
+    </div>
+  </div>
+
+  <script>
+
+    .nav-buttons {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .nav-buttons button {
+      background: #0078d7;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .nav-buttons button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .result {
+      font-weight: bold;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="menu">
+    <button>Home</button>
+    <button>Dashboard</button>
+    <button>Planner</button>
+    <button>AI Chatbot</button>
+    <button>AI Quizzes</button>
+    <button>Notes Summariser</button>
+    <button>Reminder</button>
+    <button>Progress</button>
+    <button>Logout</button>
+  </div>
+
+  <div class="quiz-container">
+    <h2>Generate Quiz</h2>
+    <div>
+      <select id="subject">
+        <option value="java">Java</option>
+        <option value="python">Python</option>
+        <option value="cpp">C++</option>
+      </select>
+      <input type="number" id="numQuestions" value="5" min="1" max="20">
+      <button id="generate">Generate</button>
+    </div>
+
+    <div id="quiz-card">
+      <div id="question-container"></div>
+      <div class="nav-buttons">
+        <button id="prev-btn">Previous</button>
+        <button id="next-btn">Next</button>
+        <button id="submit-btn">Submit</button>
+      </div>
+      <div class="result" id="result"></div>
+    </div>
+  </div>
+
+  <script>
+    let quizData = [];
+    let currentQuestion = 0;
+    let userAnswers = {};
+
+    document.getElementById("generate").addEventListener("click", async () => {
+      const subject = document.getElementById("subject").value;
+      const num = document.getElementById("numQuestions").value;
+
+      const res = await fetch(`/quiz?subject=${subject}&num=${num}`);
+      quizData = await res.json();
+
+      if (quizData.length > 0) {
+        currentQuestion = 0;
+        userAnswers = {};
+        document.getElementById("quiz-card").style.display = "block";
+        document.getElementById("result").innerText = "";
+        showQuestion();
+      }
+    });
+
+    function showQuestion() {
+      const q = quizData[currentQuestion];
+      const container = document.getElementById("question-container");
+      container.innerHTML = `
+        <div class="question">Q${currentQuestion + 1}. ${q.question}</div>
+        <div class="options">
+          ${q.options
+            .map((opt, i) => `
+              <label>
+                <input type="radio" name="option" value="${opt}" ${
+                  userAnswers[currentQuestion] === opt ? "checked" : ""
+                }> ${opt}
+              </label>
+            `)
+            .join("")}
+        </div>
+      `;
+      document.getElementById("prev-btn").disabled = currentQuestion === 0;
+      document.getElementById("next-btn").disabled = currentQuestion === quizData.length - 1;
+    }
+
+    document.getElementById("next-btn").addEventListener("click", () => {
+      saveAnswer();
+      if (currentQuestion < quizData.length - 1) {
+        currentQuestion++;
+        showQuestion();
+      }
+    });
+
+    document.getElementById("prev-btn").addEventListener("click", () => {
+      saveAnswer();
+      if (currentQuestion > 0) {
+        currentQuestion--;
+        showQuestion();
+      }
+    });
+
+    document.getElementById("submit-btn").addEventListener("click", () => {
+      saveAnswer();
+      let score = 0;
+      quizData.forEach((q, i) => {
+        if (userAnswers[i] === q.correct_answer) score++;
+      });
+      document.getElementById("result").innerHTML = 
+        `✅ You scored <b>${score}</b> out of <b>${quizData.length}</b>`;
+    });
+
+    function saveAnswer() {
+      const selected = document.querySelector('input[name="option"]:checked');
+      if (selected) {
+        userAnswers[currentQuestion] = selected.value;
+      }
+    }
+  </script>
+</body>
+</html>

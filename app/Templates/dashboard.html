@@ -1,271 +1,459 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>📘 Smart Study Planner</title>
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
- <style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>📘 Smart Study Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+  /* ========== Global ========== */
+  * { box-sizing: border-box; }
   body {
     margin: 0;
-    padding: 0;
-    font-family: 'Poppins', sans-serif;
-    background: #F5F7FA;
-    transition: margin-left 0.4s ease-in-out;
+    font-family: "Poppins", sans-serif;
+    background: linear-gradient(135deg, #eef2ff, #f5f7fa);
+    transition: margin-left 0.4s ease-in-out, background 0.6s;
+    overflow-x: hidden;
   }
 
-  /* Sidebar */
+  /* ========== Sidebar ========== */
   .slider {
-   width: 200px;
-   height: 100vh;
-   background-color: #2563EB;
-   position: fixed;
-   top: 0;
-   left: 0;
-   transform: translateX(-200px);
-   transition: transform 0.4s ease-in-out;
-   color: white;
-   padding: 20px 10px;
-   box-sizing: border-box;
-   z-index: 998;
-   display: flex;
-   flex-direction: column;
+    width: 240px;
+    height: 100vh;
+    background: linear-gradient(180deg, #2563eb, #1e3a8a);
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translateX(-250px);
+    transition: transform 0.5s ease, box-shadow 0.3s;
+    color: white;
+    padding: 30px 15px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 3px 0 10px rgba(0,0,0,0.2);
   }
 
   body.open .slider {
     transform: translateX(0);
   }
-
   body.open .content {
-    margin-left: 200px;
+    margin-left: 240px;
+    filter: blur(0);
   }
 
-  /* Navbar */
-  .navbar {
-    background-color: #2563EB;
-    color: white;
-    display: flex;
-    align-items: center;
+  .slider h2 {
     text-align: center;
-    justify-content: spa;
-    padding: 10px 20px;
-    position: sticky;
-    top: 0;
-    z-index: 50;
-  }
-  .navbar h1 {
-   display: flex;
-   align-items: center;
-   justify-content: center;
-    text-align: center;
-  }
-
-  .slidbtn button {
-    width: 40px;
-    height: 40px;
-    background-color: rgb(15, 16, 17);
-    color: white;
-    border: none;
-    cursor: pointer;
-    font-size: 20px;
-    border-radius: 5px;
-    transition: background 0.2s;
-  }
-
-  .slidbtn button:hover {
-    background-color: rgb(30, 30, 30);
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 1.4rem;
   }
 
   .menu button {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     width: 100%;
-    padding: 12px;
-    margin: 10px 0;
+    padding: 12px 16px;
+    margin: 8px 0;
     border: none;
-    border-radius: 8px;
-    background: white;
-    color: #007bff;
-    font-size: 16px;
-    font-weight: bold;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    font-weight: 500;
+    font-size: 1rem;
     cursor: pointer;
-    text-align: left;
-    transition: all 0.3s ease;
+    transition: all 0.3s;
   }
 
   .menu button:hover {
-    background: #0056b3;
-    color: white;
+    background: rgba(255, 255, 255, 0.3);
     transform: translateX(5px);
   }
 
-  .content {
-    padding: 20px;
-    transition: margin-left 0.4s ease-in-out;
+  .menu i {
+    font-size: 1.2rem;
   }
-  h1{
+
+  .logout {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .logout:hover { background: #f87171; }
+
+  /* ========== Navbar ========== */
+  .navbar {
+    background: linear-gradient(90deg, #1e3a8a, #2563eb);
+    color: white;
     display: flex;
-    text-align: center;
-    justify-content: space-between;
     align-items: center;
-    padding-left: 500px;
-
-
+    padding: 12px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
   }
 
-  /* Dashboard Cards */
+  .navbar h1 {
+    flex: 1;
+    text-align: center;
+    font-size: 26px;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+
+  .slidbtn button {
+    width: 44px;
+    height: 44px;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 22px;
+    border-radius: 10px;
+    transition: transform 0.3s;
+  }
+
+  .slidbtn button:hover {
+    transform: rotate(90deg);
+  }
+
+  /* ========== Dashboard Cards ========== */
+  .content {
+    padding: 30px;
+    transition: margin-left 0.4s;
+  }
+
   .grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
   }
 
-  .grid > div {
-    background: white;
-    border-radius: 1rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  .card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
     padding: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
   }
 
-  .grid h3 {
-    color: #6b7280;
-    font-size: 0.875rem;
+  .card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
   }
 
-  .grid p {
-    margin-top: 0.5rem;
+  .card h3 {
+    color: #374151;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
   }
 
-  .text-3xl { font-size: 1.875rem; }
-  .text-indigo-600 { color: #4f46e5; }
-  .text-orange-500 { color: #f97316; }
-  .text-purple-500 { color: #a855f7; }
-  .text-green-500 { color: #22c55e; }
- </style>
+  .text-3xl {
+    font-size: 1.8rem;
+    font-weight: 600;
+    transition: 0.3s;
+  }
+
+  .text-3xl:hover {
+    transform: scale(1.1);
+  }
+
+  #upcoming-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #eef2ff;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: 0.3s;
+  }
+
+  #upcoming-list li:hover {
+    background: #e0e7ff;
+    transform: translateX(5px);
+  }
+
+  /* Chart Section */
+  canvas {
+    width: 100% !important;
+    height: 200px !important;
+  }
+
+  /* Floating Timer Badge */
+  #live-timer {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background: linear-gradient(90deg, #2563eb, #1e3a8a);
+    color: white;
+    font-weight: 600;
+    padding: 10px 16px;
+    border-radius: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: 0.3s;
+  }
+  #live-timer:hover {
+    transform: scale(1.05);
+  }
+
+  /* Upcoming tasks table styling */
+  .upcoming-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .upcoming-table th,
+  .upcoming-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    font-size: 0.9rem;
+  }
+
+  .upcoming-table th {
+    background: linear-gradient(90deg, #2563eb, #1e3a8a);
+    color: white;
+    font-weight: 600;
+  }
+
+  .upcoming-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .upcoming-table tr:hover {
+    background: #f9fafb;
+  }
+
+  .type-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .type-badge.reminder {
+    background: #fecaca;
+    color: #991b1b;
+  }
+
+  .type-badge.task {
+    background: #bfdbfe;
+    color: #1e3a8a;
+  }
+
+  .priority-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+  }
+
+  .priority-badge.high {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .priority-badge.medium {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .priority-badge.low {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  @media (max-width: 768px) {
+    .slider { width: 200px; }
+    body.open .content { margin-left: 0; filter: blur(2px); }
+    .upcoming-table th,
+    .upcoming-table td {
+      padding: 8px;
+      font-size: 0.8rem;
+    }
+  }
+</style>
 </head>
 <body>
-
   <nav class="navbar">
     <div class="slidbtn">
       <button id="slider-btn" onclick="slidbar()">☰</button>
     </div>
-  <h1 style="color:#f8f8f9; font-size:28px; font-weight:bold; text-align:center; margin-bottom:20px;">
-     📘Brainwave Dashboard
-</h1>
-
+    <h1>📘 Brainwave Dashboard</h1>
   </nav>
 
-  <div class="slider" id="slider">
-    <h2>Menu</h2>
-    <div class="menu">
-      <button onclick="location.href='/dashboard/'"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
-      <button onclick="location.href='/planner/'"><i class="fa-regular fa-calendar"></i> Planner</button>
-      <button onclick="location.href='/chatbot/'"><i class="fa-regular fa-message"></i> Chatbot</button>
-      <button onclick="location.href='/notes_summariser/summariser'">📘 Video to Notes</button>
-      <button onclick="location.href='/quiz/'"><i class="fa-solid fa-medal"></i> Quizzes</button>
-      <button onclick="location.href='/progress/'"><i class="fa-solid fa-arrow-trend-up"></i> Progress</button>
+  <aside class="slider">
+    <div>
+      <h2>Menu</h2>
+      <div class="menu">
+        <button class="nav-btn" onclick="location.href='/api'"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
+      <button class="nav-btn" onclick="location.href='/planner'"><i class="fa-regular fa-calendar"></i> Planner</button>
+      <button class="nav-btn" onclick="location.href='/chatbot'"><i class="fa-regular fa-message"></i> Chatbot</button>
+      <button class="nav-btn" onclick="location.href='/notes_sumariser'"><i class="fa-solid fa-book"></i> Video to Notes</button>
+      <button class="nav-btn" onclick="location.href='/quiz'"><i class="fa-solid fa-medal"></i> Quizzes</button>
+      <button class="nav-btn" onclick="location.href='/reminders'"><i class="fa-solid fa-medal"></i> Reminders</button>
+      </div>
     </div>
-  </div>
+    <button class="logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </aside>
 
   <main class="content">
-    <div class="grid" id="dashboard-cards">
-      <div>
+    <div class="grid">
+      <div class="card">
         <h3>Today's Study Time</h3>
-        <p id="study-time" class="text-3xl text-indigo-600">0m</p>
+        <p id="study-time" class="text-3xl" style="color:#2563eb">0m</p>
       </div>
-      <div>
+      <div class="card">
         <h3>Study Streak</h3>
-        <p id="study-streak" class="text-3xl text-orange-500">0 🔥</p>
+        <p id="study-streak" class="text-3xl" style="color:#f97316">0 🔥</p>
       </div>
-      <div>
+      <div class="card">
         <h3>Quizzes Done</h3>
-        <p id="quizzes-done" class="text-3xl text-purple-500">0</p>
+        <p id="quizzes-done" class="text-3xl" style="color:#a855f7">0</p>
       </div>
-      <div>
+      <div class="card">
         <h3>Average Score</h3>
-        <p id="average-score" class="text-3xl text-green-500">0%</p>
+        <p id="average-score" class="text-3xl" style="color:#22c55e">0%</p>
       </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
-      <div class="bg-white rounded-2xl shadow-md p-6">
-        <h3 class="text-lg font-semibold mb-3 text-indigo-600">Weekly Study Progress</h3>
+     <div style="display:grid; grid-template-columns:2fr 1fr; gap:1.5rem;">
+      <div class="card">
+        <h3 style="color:#2563eb;">Weekly Study Progress</h3>
         <canvas id="studyChart"></canvas>
       </div>
-      <div class="bg-white rounded-2xl shadow-md p-6">
-        <h3 class="text-lg font-semibold mb-4 text-orange-500">Upcoming Tasks</h3>
-        <ul class="space-y-3" id="upcoming-list"></ul>
+      <div class="card" style="overflow-x: auto;">
+        <h3 style="color:#f97316;">Upcoming Tasks & Reminders</h3>
+        <table class="upcoming-table" id="upcoming-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Date & Time</th>
+              <th>Type</th>
+              <th>Priority</th>
+            </tr>
+          </thead>
+          <tbody id="upcoming-list">
+            <tr><td colspan="4" style="text-align: center; padding: 20px; color: #999;">No upcoming tasks</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </main>
 
+  <div id="live-timer">🕒 Active: <span id="timer-value">0m</span></div>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     function slidbar() {
-      document.body.classList.toggle('open');
-      const sliderBtn = document.getElementById('slider-btn');
-      sliderBtn.style.display = document.body.classList.contains('open') ? 'none' : 'inline-block';
+      document.body.classList.toggle("open");
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-      const menuHeading = document.querySelector('.slider h2');
-      menuHeading.addEventListener('click', function() {
-        document.body.classList.remove('open');
-        document.getElementById('slider-btn').style.display = 'inline-block';
-      });
-      loadDashboardData();
-    });
+    let activeSeconds = 0, isActive = true, windowFocus = true;
+    setInterval(()=>{ if(isActive && windowFocus) activeSeconds++; updateTimer(); }, 1000);
+    window.addEventListener("blur",()=>windowFocus=false);
+    window.addEventListener("focus",()=>windowFocus=true);
 
-    async function loadDashboardData() {
-      try {
-        const response = await fetch('/api/dashboard-data');
-        const data = await response.json();
-        console.log("📊 Dashboard Data:", data);
+    function updateTimer(){
+      const mins = Math.floor(activeSeconds/60);
+      const secs = activeSeconds%60;
+      document.getElementById("timer-value").textContent = `${mins}m ${secs}s`;
+    }
 
-        document.getElementById('study-time').textContent = data.studyTimeToday + 'm';
-        document.getElementById('study-streak').textContent = data.studyStreak + ' 🔥';
-        document.getElementById('quizzes-done').textContent = data.quizzesDone;
-        document.getElementById('average-score').textContent = data.averageScore + '%';
+    setInterval(()=>{
+      if(activeSeconds>0){
+        fetch("/planner/auto-time-log",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({seconds:activeSeconds})
+        }).then(r=>r.json()).then(console.log);
+        activeSeconds=0;
+      }
+    },30000);
 
-        const ctx = document.getElementById('studyChart').getContext('2d');
-        new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-            datasets: [{
-              label: 'Study Minutes',
-              data: data.weeklyProgress,
-              borderColor: '#6366f1',
-              backgroundColor: 'rgba(99,102,241,0.2)',
-              tension: 0.4,
-              fill: true
+    let studyChart;
+    async function loadDashboardData(){
+      try{
+        const res = await fetch("/api/dashboard-data");
+        const data = await res.json();
+
+        document.getElementById("study-time").textContent = data.studyTimeToday + "m";
+        document.getElementById("study-streak").textContent = data.studyStreak + " 🔥";
+        document.getElementById("quizzes-done").textContent = data.quizzesDone;
+        document.getElementById("average-score").textContent = data.averageScore + "%";
+
+        if(studyChart && typeof studyChart.destroy==="function") studyChart.destroy();
+
+        const ctx=document.getElementById("studyChart").getContext("2d");
+        studyChart=new Chart(ctx,{
+          type:"line",
+          data:{
+            labels:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+            datasets:[{
+              label:"Study Minutes",
+              data:data.weeklyProgress||[0,0,0,0,0,0,0],
+              borderColor:"#2563eb",
+              backgroundColor:"rgba(37,99,235,0.2)",
+              fill:true,
+              tension:0.4
             }]
           },
-          options: {
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true }, x: { grid: { display: false } } }
+          options:{
+            plugins:{legend:{display:false}},
+            scales:{y:{beginAtZero:true},x:{grid:{display:false}}}
           }
         });
 
-        const upcomingList = document.getElementById('upcoming-list');
-        upcomingList.innerHTML = '';
-        data.upcomingTasks.forEach(task => {
-          const li = document.createElement('li');
-          li.className = 'upcoming-task';
-          li.innerHTML = `
-            <div>
-              <p class="font-medium text-gray-700">${task.task}</p>
-              <span class="text-xs text-gray-400">${task.date}</span>
-            </div>
-            <span class="bg-${task.priority === 'high' ? 'red' : 'yellow'}-100 text-${task.priority === 'high' ? 'red' : 'yellow'}-500">${task.priority}</span>
-          `;
-          upcomingList.appendChild(li);
-        });
-
-      } catch (err) {
-        console.error('Error loading data:', err);
-      }
+        const list = document.getElementById("upcoming-list");
+        const tasks = data.upcomingTasks || [];
+        
+        if (tasks.length === 0) {
+          list.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 20px; color: #999;">No upcoming tasks</td></tr>`;
+        } else {
+          list.innerHTML = "";
+          tasks.forEach(task => {
+            const tr = document.createElement("tr");
+            const typeLabel = task.type === 'reminder' ? 'Reminder' : 'Task';
+            const typeClass = task.type === 'reminder' ? 'reminder' : 'task';
+            const priorityClass = (task.priority || 'medium').toLowerCase();
+            const timeStr = task.time ? `${task.date} ${task.time}` : task.date;
+            
+            tr.innerHTML = `
+              <td><strong>${task.task}</strong></td>
+              <td><small>${timeStr}</small></td>
+              <td><span class="type-badge ${typeClass}">${typeLabel}</span></td>
+              <td><span class="priority-badge ${priorityClass}">${task.priority}</span></td>
+            `;
+            list.appendChild(tr);
+          });
+        }
+      }catch(err){ console.error("Error loading data:",err); }
     }
+
+    document.addEventListener("DOMContentLoaded", loadDashboardData);
+    setInterval(loadDashboardData,60000);
   </script>
 </body>
 </html>

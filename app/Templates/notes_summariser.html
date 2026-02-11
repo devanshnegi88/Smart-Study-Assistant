@@ -24,15 +24,12 @@
   <div class="slider" id="slider">
   <h2>Menu</h2>
   <div class="menu">
-    <button onclick="window.location.href='/'">Home</button><br>
-    <button onclick="window.location.href='/dashboard/'">Dashboard</button><br>
-    <button onclick="window.location.href='/planner/'">Planner</button><br>
-    <button onclick="window.location.href='/chatbot/'">AI Chatbot</button><br>
-    <button onclick="window.location.href='/quizzes/'">AI Quizzes</button><br>
-    <button onclick="window.location.href='/notes_sumariser'">Notes Summariser</button><br>
-    <button onclick="window.location.href='/reminders/'">Reminder</button><br>
-    <button onclick="window.location.href='/progress/'">Progress</button><br>
-
+    <button class="nav-btn" onclick="location.href='/api'"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
+      <button class="nav-btn" onclick="location.href='/planner'"><i class="fa-regular fa-calendar"></i> Planner</button>
+      <button class="nav-btn" onclick="location.href='/chatbot'"><i class="fa-regular fa-message"></i> Chatbot</button>
+      <button class="nav-btn" onclick="location.href='/notes_sumariser'"><i class="fa-solid fa-book"></i> Video to Notes</button>
+      <button class="nav-btn" onclick="location.href='/quiz'"><i class="fa-solid fa-medal"></i> Quizzes</button>
+      <button class="nav-btn" onclick="location.href='/reminders'"><i class="fa-solid fa-medal"></i> Reminders</button>
     
   </div>
 </div>
@@ -79,6 +76,39 @@
       </div>
     </div>
   </div>
+
+  <script>
+let startTime = Date.now();
+
+// Auto track time spent on the page
+window.addEventListener("beforeunload", () => {
+  const duration = (Date.now() - startTime) / 60000; // minutes
+  fetch("/planner/track-time", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ subject: document.title || "General", duration })
+  });
+});
+
+// Example for chatbot (send when user finishes session)
+function logChatUsage(questions = 5) {
+  fetch("/planner/log-chat-usage", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ questions })
+  });
+}
+
+// Example for quiz completion
+function logQuiz(score) {
+  fetch("/planner/log-quiz", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ score })
+  });
+}
+</script>
+
 
 <script src="/static/js/notes_summariser.js"></script>
 </body>
