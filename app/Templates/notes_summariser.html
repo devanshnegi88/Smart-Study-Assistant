@@ -8,7 +8,91 @@
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
  <title>Push Sidebar</title>
- 
+ <style>
+   #summaryOutput {
+     background: #f8f9fa;
+     border: 1px solid #dee2e6;
+     border-radius: 8px;
+     padding: 20px;
+     min-height: 300px;
+     max-height: 600px;
+     overflow-y: auto;
+     line-height: 1.8;
+     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+   }
+   
+   #summaryOutput h2 {
+     color: #2c3e50;
+     margin-top: 20px;
+     margin-bottom: 15px;
+     border-bottom: 2px solid #3498db;
+     padding-bottom: 10px;
+   }
+   
+   #summaryOutput h3 {
+     color: #34495e;
+     margin-top: 15px;
+     margin-bottom: 10px;
+   }
+   
+   #summaryOutput strong, #summaryOutput b {
+     color: #2980b9;
+     font-weight: 600;
+   }
+   
+   #summaryOutput p {
+     margin-bottom: 12px;
+     color: #555;
+   }
+   
+   #summaryOutput ul, #summaryOutput ol {
+     margin-left: 20px;
+     margin-bottom: 15px;
+   }
+   
+   #summaryOutput li {
+     margin-bottom: 8px;
+     color: #555;
+   }
+   
+   #summaryOutput pre {
+     background: #2c3e50;
+     color: #ecf0f1;
+     padding: 15px;
+     border-radius: 6px;
+     overflow-x: auto;
+     margin: 15px 0;
+     font-size: 13px;
+   }
+   
+   #summaryOutput code {
+     background: #ecf0f1;
+     padding: 2px 6px;
+     border-radius: 3px;
+     font-family: 'Courier New', monospace;
+   }
+   
+   .loading-spinner {
+     display: inline-block;
+     width: 20px;
+     height: 20px;
+     border: 3px solid #f3f3f3;
+     border-top: 3px solid #3498db;
+     border-radius: 50%;
+     animation: spin 1s linear infinite;
+   }
+   
+   @keyframes spin {
+     0% { transform: rotate(0deg); }
+     100% { transform: rotate(360deg); }
+   }
+   
+   .summary-container {
+     display: flex;
+     gap: 10px;
+     align-items: center;
+   }
+ </style>
 </head>
 <body>
   <section>
@@ -72,7 +156,7 @@
 
       <div class="field">
         <label for="summary">Summary / Notes</label>
-        <textarea id="summary" class="summary" placeholder="The generated summary will appear here. Edit or add notes as needed."></textarea>
+        <div id="summaryOutput" placeholder="The generated summary will appear here. Edit or add notes as needed."></div>
       </div>
     </div>
   </div>
@@ -108,7 +192,6 @@ function logQuiz(score) {
   });
 }
 </script>
-
 
 <script src="/static/js/notes_summariser.js"></script>
 </body>

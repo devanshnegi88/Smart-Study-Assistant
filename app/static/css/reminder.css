@@ -1,6 +1,6 @@
  body {
       font-family: 'Segoe UI', sans-serif;
-      background-image: url("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcPcyOgr2yDPOAidqlNr1B2U3PPgfm2Bgwtw&s");
+      background-image: url("https://thumbs.dreamstime.com/b/abstract-blue-background-28062758.jpg");
       background-size: cover;
       margin: 0;
       padding: 20px;
@@ -225,4 +225,15 @@ ease;}
       justify-content: space-between;
       align-items: center;
       color: white;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 30px;
+   padding-right:650px ;
+      font-weight: bold;
+      align-items: center;
+      display: flex;
+      justify-content: start;
+
     }

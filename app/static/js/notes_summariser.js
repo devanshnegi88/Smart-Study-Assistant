@@ -26,7 +26,7 @@ const processLocalBtn = document.getElementById('processLocalBtn');
 const ytUrl = document.getElementById('ytUrl');
 const ytError = document.getElementById('ytError');
 const processYtBtn = document.getElementById('processYtBtn');
-const summary = document.getElementById('summary');
+const summaryOutput = document.getElementById('summaryOutput');
 
 
 const ytRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
@@ -48,7 +48,7 @@ function switchMode(isYouTube) {
   ytUrl.value = "";
   processYtBtn.disabled = true;
   ytError.style.display = "none";
-  summary.value = "";
+  summaryOutput.innerHTML = "";
 }
 
 localBtn.addEventListener('click', () => switchMode(false));
@@ -70,11 +70,16 @@ ytUrl.addEventListener("input", () => {
   processYtBtn.disabled = !valid;
 });
 
+// Show loading state
+function showLoading() {
+  summaryOutput.innerHTML = '<div class="summary-container"><div class="loading-spinner"></div> <span>Processing video, please wait...</span></div>';
+}
+
 // Process local video
 processLocalBtn.addEventListener("click", async () => {
   const file = localInput.files[0];
   if (!file) return;
-  summary.value = "Processing local file, please wait...";
+  showLoading();
 
   const formData = new FormData();
   formData.append("video", file);
@@ -85,9 +90,16 @@ processLocalBtn.addEventListener("click", async () => {
       body: formData
     });
     const data = await res.json();
-    summary.value = data.summary || data.error || "No summary generated.";
+    
+    if (data.summary) {
+      summaryOutput.innerHTML = data.summary;
+    } else if (data.error) {
+      summaryOutput.innerHTML = `<p style="color: #b91c1c;"><strong>Error:</strong> ${data.error}</p>`;
+    } else {
+      summaryOutput.innerHTML = "<p>No summary generated.</p>";
+    }
   } catch (err) {
-    summary.value = "Error processing video.";
+    summaryOutput.innerHTML = '<p style="color: #b91c1c;"><strong>Error:</strong> Failed to process video.</p>';
   }
 });
 
@@ -95,7 +107,7 @@ processLocalBtn.addEventListener("click", async () => {
 processYtBtn.addEventListener("click", async () => {
   const link = ytUrl.value.trim();
   if (!validateYouTube(link)) return;
-  summary.value = "Processing YouTube link, please wait...";
+  showLoading();
 
   try {
     const res = await fetch("/notes_sumariser/summarise_youtube", {
@@ -104,8 +116,15 @@ processYtBtn.addEventListener("click", async () => {
       body: JSON.stringify({ url: link })
     });
     const data = await res.json();
-    summary.value = data.summary || data.error || "No summary generated.";
+    
+    if (data.summary) {
+      summaryOutput.innerHTML = data.summary;
+    } else if (data.error) {
+      summaryOutput.innerHTML = `<p style="color: #b91c1c;"><strong>Error:</strong> ${data.error}</p>`;
+    } else {
+      summaryOutput.innerHTML = "<p>No summary generated.</p>";
+    }
   } catch (err) {
-    summary.value = "Error processing YouTube link.";
+    summaryOutput.innerHTML = '<p style="color: #b91c1c;"><strong>Error:</strong> Failed to process YouTube link.</p>';
   }
 });

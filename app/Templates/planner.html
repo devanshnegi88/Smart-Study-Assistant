@@ -571,6 +571,30 @@ function deleteSubject(name) {
 
 // Initial load
 loadStats();
+
+let active = true;
+let lastActivity = Date.now();
+
+['mousemove', 'keydown', 'scroll', 'click'].forEach(evt => {
+    document.addEventListener(evt, () => {
+        active = true;
+        lastActivity = Date.now();
+    });
+});
+
+setInterval(() => {
+    if (Date.now() - lastActivity > 5 * 60 * 1000) {
+        active = false;
+    }
+    if (active) {
+        fetch("/api/update-study-time", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({seconds: 60})
+        });
+    }
+}, 60000);
+
 </script>
 
 </body>
