@@ -18,26 +18,23 @@
       <button id="slider-btn" onclick="slidbar()">☰</button>
     </div>
     <h1>📘 Smart Study Planner</h1>
-    <a href="/auth/logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
   </nav>
   
   
 
-  <div class="slider" id="slider">
-  <h2>Menu</h2>
-  <div class="menu">
-    <button class="nav-btn" onclick="location.href='/api'"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
-      <button class="nav-btn" onclick="location.href='/planner'"><i class="fa-regular fa-calendar"></i> Planner</button>
-      <button class="nav-btn" onclick="location.href='/chatbot'"><i class="fa-regular fa-message"></i> Chatbot</button>
-      <button class="nav-btn" onclick="location.href='/notes_sumariser'"><i class="fa-solid fa-book"></i> Video to Notes</button>
-      <button class="nav-btn" onclick="location.href='/quiz'"><i class="fa-solid fa-medal"></i> Quizzes</button>
-      <button class="nav-btn" onclick="location.href='/reminders'"><i class="fa-solid fa-medal"></i> Reminders</button>
-    
+<aside class="slider">
+    <h2>Menu</h2>
+    <div class="menu">
+      <button onclick="location.href='/api'"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
+      <button onclick="location.href='/planner'"><i class="fa-regular fa-calendar"></i> Planner</button>
+      <button onclick="location.href='/chatbot'"><i class="fa-regular fa-message"></i> Chatbot</button>
+      <button onclick="location.href='/notes_sumariser'"><i class="fa-solid fa-book"></i> Video to Notes</button>
+      <button onclick="location.href='/quiz'"><i class="fa-solid fa-medal"></i> Quizzes</button>
+      <button onclick="location.href='/reminders'"><i class="fa-solid fa-bell"></i> Reminders</button>
+    </div>
 
-    
-  </div>
-</div>
-
+    <a href="/auth/logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+  </aside>
 
   <!-- Main Content -->
   <div class="content">
@@ -83,6 +80,30 @@ function logQuiz(score) {
     body: JSON.stringify({ score })
   });
 }
+
+let active = true;
+let lastActivity = Date.now();
+
+['mousemove', 'keydown', 'scroll', 'click'].forEach(evt => {
+    document.addEventListener(evt, () => {
+        active = true;
+        lastActivity = Date.now();
+    });
+});
+
+setInterval(() => {
+    if (Date.now() - lastActivity > 5 * 60 * 1000) {
+        active = false;
+    }
+    if (active) {
+        fetch("/api/update-study-time", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({seconds: 60})
+        });
+    }
+}, 60000);
+
 </script>
 
 

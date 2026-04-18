@@ -113,10 +113,41 @@ def dashboard_data():
         weekly_progress.append(user.get('study_time', {}).get(day_str, 0))
 
     # Upcoming tasks (next 5)
+# Upcoming tasks (next 5)
+    upcoming_tasks = []   # <-- MUST be first
+
     upcoming_tasks_cursor = tasks_collection.find({
         'user_id': str(user_id),
         'date': {'$gte': today_str}
     }).sort('date', 1).limit(5)
+ 
+    for t in upcoming_tasks_cursor:
+        upcoming_tasks.append({
+            'task': t.get('task_name', 'No Name'),
+            'date': t.get('date', today_str),
+            'priority': t.get('priority', 'low'),
+            'type': 'task'
+      })
+
+
+# Reminders (NOT expired)
+    now = datetime.utcnow()
+    user_email = user.get('email','')
+
+    reminders_cursor = reminders_collection.find({
+        'user.email': user_email,
+        'time': {'$gte': now}
+    }).sort('time', 1)
+
+    for r in reminders_cursor:
+        upcoming_tasks.append({
+            'task': r.get('title', 'No Title'),
+            'date': r['time'].strftime('%Y-%m-%d'),
+            'time': r['time'].strftime('%H:%M'),
+            'priority': r.get('priority', 'normal'),
+            'type': 'reminder'
+        })
+
 
     upcoming_tasks = []
     for t in upcoming_tasks_cursor:

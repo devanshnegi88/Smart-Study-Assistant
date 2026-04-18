@@ -9,6 +9,8 @@
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #f7f8fa;
+      background-image: url("https://media.istockphoto.com/id/960310702/vector/blue-honeycomb-abstract-background-wallpaper-and-texture-concept-minimal-theme.jpg?s=612x612&w=0&k=20&c=w2wI1KV42_8yZHj-J8Fx302A0MnrhTxBG8bVVJgTBYA=");
+      background-size: cover;
       margin: 0;
       padding: 0;
       min-height: 100vh;
@@ -629,5 +631,29 @@
         console.error('Error saving quiz result:', err);
       }
     });
+
+    let active = true;
+let lastActivity = Date.now();
+
+['mousemove', 'keydown', 'scroll', 'click'].forEach(evt => {
+    document.addEventListener(evt, () => {
+        active = true;
+        lastActivity = Date.now();
+    });
+});
+
+setInterval(() => {
+    if (Date.now() - lastActivity > 5 * 60 * 1000) {
+        active = false;
+    }
+    if (active) {
+        fetch("/api/update-study-time", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({seconds: 60})
+        });
+    }
+}, 60000);
+
   </script>
   

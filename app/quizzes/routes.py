@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify, render_template, session
 import google.generativeai as genai
 import os, json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from bson import ObjectId
-from app.models import quizzes_collection
+from app.models import quizzes_collection, users_collection, reminders_collection, tasks_collection
+from app.reminders.email_utils import send_email
 from app.activity_logger import log_activity
 
 quiz_bp = Blueprint("quiz", __name__, url_prefix="/quiz")
@@ -75,6 +76,56 @@ def quiz_history():
     return jsonify(quizzes)
 
 
+LOW_PERFORMANCE_THRESHOLD = float(os.getenv("LOW_PERFORMANCE_THRESHOLD", 60))
+AUTO_REMINDER_HOURS = int(os.getenv("AUTO_REMINDER_HOURS", 24))
+
+
+def _make_review_reminder_time():
+    now = datetime.now(timezone.utc)
+    reminder_time = now + timedelta(hours=AUTO_REMINDER_HOURS)
+    return reminder_time.replace(minute=0, second=0, microsecond=0)
+
+
+def _create_weak_topic_task(user_id, subject):
+    task_date = (datetime.now().date() + timedelta(days=1)).isoformat()
+    tasks_collection.insert_one({
+        "user_id": str(user_id),
+        "task_name": f"Review weak topic: {subject}",
+        "date": task_date,
+        "priority": "high",
+        "notes": "Weak topic detected after low quiz performance.",
+        "created_at": datetime.now(timezone.utc)
+    })
+
+
+def _create_auto_reminder(user_id, email, subject):
+    reminder_time = _make_review_reminder_time()
+    reminders_collection.insert_one({
+        "user": {
+            "id": str(user_id),
+            "email": email
+        },
+        "title": f"Review weak topic: {subject}",
+        "time": reminder_time,
+        "priority": "High",
+        "auto": True,
+        "notify_flags": {},
+        "created_at": datetime.now(timezone.utc)
+    })
+
+    if email:
+        subject_line = f"Study reminder created for {subject}"
+        body = (
+            f"Hello,\n\n"
+            f"Based on a recent quiz result, a study reminder for \"{subject}\" has been scheduled for {reminder_time.strftime('%Y-%m-%d %H:%M UTC')}.\n\n"
+            "Please review the topic to strengthen your understanding.\n\n"
+            "— Smart Study Planner"
+        )
+        send_email(email, subject_line, body)
+
+    return reminder_time
+
+
 @quiz_bp.route('/submit', methods=['POST'])
 def submit_quiz():
     # Get user_id from session (try both formats)
@@ -104,42 +155,52 @@ def submit_quiz():
         "total": total,
         "time_taken_seconds": time_taken,
         "date": today,
-        "created_at": datetime.now()
+        "created_at": datetime.now(timezone.utc)
     }
-    
+
     quizzes_collection.insert_one(quiz_result)
-    
-    # ✅ Update user's quiz stats
+
+    # ✅ Update user's quiz stats and weak topics
     try:
-        from app.models import users_collection
         user_obj_id = ObjectId(user_id) if isinstance(user_id, str) else user_id
-        
+
         # Get current user to calculate new average
         user = users_collection.find_one({'_id': user_obj_id})
         if user:
             current_quizzes_done = user.get('quizzes_done', 0)
             current_avg_score = user.get('average_score', 0)
-            
+
             # Calculate new average
             new_total_quizzes = current_quizzes_done + 1
             new_avg_score = ((current_avg_score * current_quizzes_done) + float(score)) / new_total_quizzes
-            
-            # Update user document
+
+            update_payload = {
+                'quizzes_done': new_total_quizzes,
+                'average_score': round(new_avg_score, 2)
+            }
+
+            if float(score) < LOW_PERFORMANCE_THRESHOLD:
+                update_payload.setdefault('weak_subjects', [])
+                users_collection.update_one(
+                    {'_id': user_obj_id},
+                    {'$addToSet': {'weak_subjects': subject}}
+                )
+
+                user_email = session.get('user', {}).get('email')
+                _create_weak_topic_task(user_id, subject)
+                _create_auto_reminder(user_id, user_email, subject)
+
             users_collection.update_one(
                 {'_id': user_obj_id},
-                {'$set': {
-                    'quizzes_done': new_total_quizzes,
-                    'average_score': round(new_avg_score, 2)
-                }}
+                {'$set': update_payload}
             )
     except Exception as e:
         print(f"Error updating user stats: {str(e)}")
 
     # ✅ Auto log activity
     try:
-        from app.activity_logger import log_activity
         log_activity(str(user_id), "quiz_completed", {"subject": subject, "score": score})
-    except:
+    except Exception:
         pass
 
     return jsonify({"success": True, "message": "Quiz submitted successfully"})

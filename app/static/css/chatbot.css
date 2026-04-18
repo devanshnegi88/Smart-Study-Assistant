@@ -13,63 +13,95 @@ body {
 }
 
 /* Navbar */
-.navbar {
-  background-color: #2563EB;
-  color: white;
-  display: flex;
-  height: 50px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 1000;
-  font-weight: bold;
-}
+    .navbar {
+      background: linear-gradient(90deg, #1e3a8a, #2563eb);
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
 
-.navbar h1 {
-  font-size: 20px;
-}
+    .navbar h1 {
+      flex: 1;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+    }
 
-/* Sidebar */
-.slider {
-  width: 200px;
-  height: 100vh;
-  background-color: #2563EB;
-  position: fixed;
-  top: 0;
-  left: 0;
-  transform: translateX(-200px);
-  transition: transform 0.4s ease-in-out;
-  color: white;
-  padding-top: 60px;
-  z-index: 999;
-}
+    .slidbtn button {
+      width: 44px;
+      height: 44px;
+      background-color: rgba(0,0,0,0.6);
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 22px;
+      border-radius: 10px;
+    }
 
-body.open .slider {
-  transform: translateX(0);
-}
+    /* Sidebar */
+    .slider {
+      width: 240px;
+      height: 100vh;
+      background: linear-gradient(180deg, #2563eb, #1e3a8a);
+      position: fixed;
+      top: 0;
+      left: 0;
+      transform: translateX(-250px);
+      transition: 0.4s ease;
+      color: white;
+      padding: 30px 15px;
+      z-index: 999;
+    }
 
-.menu button {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border: none;
-  border-radius: 8px;
-  background: white;
-  color: #007bff;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-}
+    body.open .slider {
+      transform: translateX(0);
+    }
 
-.menu button:hover {
-  background: #0056b3;
-  color: white;
-  transform: translateX(5px);
-}
+    body.open .content {
+      margin-left: 240px;
+    }
+
+    .menu button {
+      width: 100%;
+      padding: 12px 16px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: 0.3s;
+    }
+
+    .menu button:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateX(5px);
+    }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #ff4444;
+        }
+
 
 /* Chat layout */
 .content {

@@ -17,17 +17,13 @@ GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5
 if not GEMINI_API_KEY:
     raise ValueError("❌ GEMINI_API_KEY missing! Please add it to your .env file.")
 
-# ==================================================================
-# 🧠 Serve Chatbot Page
-# ==================================================================
+
 @chatbot_bp.route("/")
 def chatbot_page():
     """Serves the chatbot UI page"""
     return render_template("chatbot.html")
 
-# ==================================================================
-# ⏱️ Helper: Automatically update study time
-# ==================================================================
+
 def update_study_time(user_id, minutes_spent=1):
     """
     Increment user's study time for the current day.

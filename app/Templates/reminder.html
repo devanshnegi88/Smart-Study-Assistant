@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <title>📅 Task Reminder Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
   <link rel="stylesheet" href="/static/css/reminder.css">
   <script src="/static/js/reminder.js"></script>
 
@@ -17,7 +18,7 @@
       <div class="slidbtn">
         <button id="slider-btn" onclick="slidbar()">☰</button>
       </div>
-      <a href="/auth/logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+     <h1>📘 Smart Reminders </h1>
     </nav>
   </section>
 
@@ -32,6 +33,8 @@
       <button class="nav-btn" onclick="location.href='/quiz'"><i class="fa-solid fa-medal"></i> Quizzes</button>
       <button class="nav-btn" onclick="location.href='/reminders'"><i class="fa-solid fa-medal"></i> Reminders</button>
       
+    
+    <a href="/auth/logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
     </div>
   </div>
 

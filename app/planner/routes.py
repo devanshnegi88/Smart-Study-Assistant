@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, render_template, request, session
-from app.models import users_collection, study_sessions_col, quizzes_collection, tasks_collection,reminders_collection
+from app.models import users_collection, study_sessions_col, quizzes_collection, tasks_collection, reminders_collection
+from app.reminders.email_utils import send_email
 from bson.objectid import ObjectId
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 planner_bp = Blueprint('planner', __name__, url_prefix='/planner')
 
@@ -335,18 +336,50 @@ def delete_subject(name):
     return jsonify({"success": True})
 
 @planner_bp.route('/add_reminder', methods=['POST'])
-def add_reminder():
+def add_planner_reminder():
+    print("[PLANNER] /add_reminder route called", flush=True)
     if "user" not in session:
+        print("[PLANNER] ⚠ User not in session", flush=True)
         return jsonify({"error": "Not logged in"}), 401
 
+    user = session["user"]
     data = request.json
+    subject = data.get("subject") or "Reminder"
+    message = data.get("message") or "Study reminder"
+    user_email = user.get("email")
+    print(f"[PLANNER] User email: {user_email}, Subject: {subject}", flush=True)
+
     reminders_collection.insert_one({
-        "user_id": ObjectId(session["user"]["id"]),
-        "subject": data.get("subject"),
-        "message": data.get("message"),
+        "user_id": ObjectId(user["id"]),
+        "user": {
+            "id": user["id"],
+            "email": user_email
+        },
+        "subject": subject,
+        "title": subject,
+        "message": message,
         "priority": data.get("priority", "Medium"),
         "auto": False,
-        "created_at": datetime.now().isoformat()
+        "created_at": datetime.now(timezone.utc),
+        "notify_flags": {}
     })
+    print("[PLANNER] Reminder saved to DB", flush=True)
+
+    if user_email:
+        print(f"[PLANNER] Email found: {user_email}, proceeding with email send", flush=True)
+        email_subject = f"Reminder created: {subject}"
+        email_body = (
+            f"Hello,\n\n"
+            f"A new reminder has been set for you:\n"
+            f"Subject: {subject}\n"
+            f"Message: {message}\n\n"
+            "You will receive a notification before the scheduled time.\n\n"
+            "— Smart Study Planner"
+        )
+        print(f"[PLANNER] About to call send_email({user_email}, {email_subject})", flush=True)
+        result = send_email(user_email, email_subject, email_body)
+        print(f"[PLANNER] send_email returned: {result}", flush=True)
+    else:
+        print("[PLANNER] ⚠ No email found for user", flush=True)
 
     return jsonify({"success": True})
