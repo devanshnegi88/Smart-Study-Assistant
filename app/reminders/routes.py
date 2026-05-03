@@ -13,6 +13,18 @@ from threading import Thread
 from datetime import datetime, timezone
 import time
 
+# --- New imports for scheduler/email ---
+from threading import Thread
+import time
+import smtplib
+from email.message import EmailMessage
+from dotenv import load_dotenv
+import pytz
+import traceback
+
+# Load environment variables
+load_dotenv()
+
 reminders_bp = Blueprint("reminders", __name__, url_prefix="/reminders")
 
 # connect to MongoDB Atlas
@@ -41,6 +53,7 @@ reminders_collection.create_index("time", expireAfterSeconds=0)
 
 @reminders_bp.route("/api", methods=["GET"])
 def get_reminders():
+<<<<<<< HEAD
     if "user" not in session:
         return jsonify({"error": "Not logged in"}), 401
 
@@ -98,19 +111,73 @@ def add_reminder():
     sys.stderr.write(f"[REMINDER] Request data: {data}\n")
     sys.stderr.flush()
     
+=======
+    if "user" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    user_email = session["user"]["email"]
+    now = datetime.utcnow()
+
+    reminders = list(reminders_collection.find({
+        "user.email": user_email,   # only this user's reminders
+        "time": {"$gte": now}        # not expired (TTL already deletes expired)
+    }).sort("time", 1))
+
+    for r in reminders:
+        r["_id"] = str(r["_id"])
+
+    return jsonify(reminders)
+
+
+# ✅ Add a new reminder
+# @reminders_bp.route("/add", methods=["POST"])
+# def add_reminder():
+#     if "user" not in session:
+#         return jsonify({"error": "Not logged in"}), 401
+
+#     data = request.json
+
+#     # Convert frontend local time to UTC before saving
+#     local_time = datetime.fromisoformat(data["time"])
+#     utc_time = local_time.astimezone(timezone.utc)
+
+#     result = reminders_collection.insert_one({
+#         "user": session["user"],
+#         "title": data["title"],
+#         "time": utc_time
+#     })
+
+#     return jsonify({
+#         "status": "success",
+#         "_id": str(result.inserted_id),
+#         "title": data["title"],
+#         "time": data["time"]  # send back original local time for UI
+#     }), 201
+
+@reminders_bp.route("/add", methods=["POST"])
+def add_reminder():
+    if "user" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    data = request.json
+>>>>>>> 84e29029a03bff646e1397431a9616823050952e
     local_time = datetime.fromisoformat(data["time"])
     utc_time = local_time.astimezone(timezone.utc)
 
     user = session["user"]
+<<<<<<< HEAD
     title = data.get("title", "Reminder")
     priority = data.get("priority", "normal")
     sys.stderr.write(f"[REMINDER] User object: {user}\n")
     sys.stderr.write(f"[REMINDER] User email: {user.get('email')}, Title: {title}\n")
     sys.stderr.flush()
+=======
+>>>>>>> 84e29029a03bff646e1397431a9616823050952e
 
     reminders_collection.insert_one({
         "user": {
             "id": user["id"],
+<<<<<<< HEAD
             "email": user["email"]
         },
         "title": title,
@@ -150,6 +217,16 @@ def add_reminder():
 
     return jsonify({"status": "success"}), 201
 
+=======
+            "email": user["email"]   # must store email for filtering
+        },
+        "title": data["title"],
+        "time": utc_time
+    })
+
+    return jsonify({"status": "success"}), 201
+
+>>>>>>> 84e29029a03bff646e1397431a9616823050952e
 
 # ✅ Delete a reminder manually
 @reminders_bp.route("/<reminder_id>", methods=["DELETE"])
@@ -157,6 +234,7 @@ def delete_reminder(reminder_id):
     reminders_collection.delete_one({"_id": ObjectId(reminder_id)})
     return jsonify({"message": "Deleted"})
 
+<<<<<<< HEAD
 
 # ✅ Cleanup expired reminders (called by frontend periodically)
 @reminders_bp.route("/cleanup", methods=["POST"])
@@ -236,6 +314,11 @@ try:
     print("[SCHEDULER] ✅ Background thread started successfully!", flush=True)
 except Exception as e:
     print(f"[SCHEDULER] ❌ Failed to start: {e}", flush=True)
+=======
+# ------------------------------
+# Background email scheduler code
+# ------------------------------
+>>>>>>> 84e29029a03bff646e1397431a9616823050952e
 
 # Environment-configurable values
 # MAIL_SERVER = os.getenv("MAIL_SERVER")
