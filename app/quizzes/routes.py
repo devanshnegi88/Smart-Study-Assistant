@@ -6,11 +6,18 @@ from bson import ObjectId
 from app.models import quizzes_collection, users_collection, reminders_collection, tasks_collection
 from app.reminders.email_utils import send_email
 from app.activity_logger import log_activity
+import google.generativeai as genai
+import random
+import json
+import os
 
 quiz_bp = Blueprint("quiz", __name__, url_prefix="/quiz")
 
 # Configure Gemini API key
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+
+genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 @quiz_bp.route("/")
 def quiz_ui():
@@ -18,192 +25,155 @@ def quiz_ui():
 
 @quiz_bp.route("/generate", methods=["POST"])
 def generate_quiz():
-    data = request.json
-    topic = data.get("topic")
-    num_questions = data.get("num_questions", 5)
+    data = request.get_json()
+    subject = data.get('topic')
+    num_questions = data.get('num_questions', 25)  # Default to 25 questions
 
-    if not topic:
-        return jsonify({"error": "Topic is required"}), 400
-
+    # Create the prompt for Gemini
     prompt = f"""
-    Generate {num_questions} multiple choice questions on the topic "{topic}".
-    Return the output as a **valid JSON list**.
-    Each question must follow this schema:
-    [
-      {{
-        "question": "string",
-        "options": ["A","B","C","D"],
-        "correct_answer": "string"
-      }}
-    ]
-    Make sure each option is EXACTLY ONE LETTER (A, B, C, or D).
-    Do NOT return code blocks or markdown formatting.
-    Return ONLY the JSON array.
-    """
+        Generate {num_questions} multiple choice quiz questions about {subject}. Each question should:
+        1. Be appropriate for a student learning this subject
+        2. Have exactly 4 options (A, B, C, D)
+        3. Have one correct answer
 
+        Return ONLY a raw JSON array — no markdown, no code fences, no extra text.
+        Format:
+        [
+            {{
+                "question": "Question text here",
+                "options": ["Option A", "Option B", "Option C", "Option D"],
+                "correct_answer": "The exact correct option text"
+            }}
+        ]
+        """
+
+    # Generate response from Gemini
+    response = model.generate_content(prompt)
+    response_text = response.text if response.text else "[]"
+
+    # Strip markdown code fences if present (e.g. ```json ... ```)
+    cleaned = response_text.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.split("```", 2)[-1] if cleaned.count("```") >= 2 else cleaned
+        # Remove leading language tag like 'json\n'
+        if cleaned.startswith("json"):
+            cleaned = cleaned[4:]
+        cleaned = cleaned.rsplit("```", 1)[0].strip()
+
+    # Extract the JSON array
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash-lite")
-        response = model.generate_content(prompt)
-        text_response = response.text.strip()
+        json_start = cleaned.find('[')
+        json_end = cleaned.rfind(']') + 1
+        if json_start >= 0 and json_end > json_start:
+            questions = json.loads(cleaned[json_start:json_end])
+        else:
+            questions = json.loads(cleaned)
+    except (json.JSONDecodeError, ValueError):
+        return jsonify({"error": "Failed to parse quiz from AI response", "raw": response_text}), 500
 
-        # Clean up response - remove markdown code blocks
-        if text_response.startswith("```"):
-            text_response = text_response.split("```")[1]
-            if text_response.startswith("json"):
-                text_response = text_response[4:]
-        text_response = text_response.strip()
+    if not isinstance(questions, list):
+        return jsonify({"error": "AI did not return a list of questions", "raw": response_text}), 500
 
-        # Try parsing as JSON
-        try:
-            quiz_data = json.loads(text_response)
-            if not isinstance(quiz_data, list):
-                return jsonify({"error": "Quiz data must be a list"}), 500
-            
-            return jsonify(quiz_data)
-            
-        except json.JSONDecodeError as e:
-            print(f"JSON parsing error: {str(e)}")
-            print(f"Response was: {text_response[:200]}")
-            return jsonify({"error": f"Failed to parse quiz: {str(e)}"}), 500
-
-    except Exception as e:
-        print(f"Error generating quiz: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-@quiz_bp.route("/history")
-def quiz_history():
-    quizzes = list(quizzes_collection.find({}, {"_id": 0}))
-    return jsonify(quizzes)
-
-
-LOW_PERFORMANCE_THRESHOLD = float(os.getenv("LOW_PERFORMANCE_THRESHOLD", 60))
-AUTO_REMINDER_HOURS = int(os.getenv("AUTO_REMINDER_HOURS", 24))
-
-
-def _make_review_reminder_time():
-    now = datetime.now(timezone.utc)
-    reminder_time = now + timedelta(hours=AUTO_REMINDER_HOURS)
-    return reminder_time.replace(minute=0, second=0, microsecond=0)
-
-
-def _create_weak_topic_task(user_id, subject):
-    task_date = (datetime.now().date() + timedelta(days=1)).isoformat()
-    tasks_collection.insert_one({
-        "user_id": str(user_id),
-        "task_name": f"Review weak topic: {subject}",
-        "date": task_date,
-        "priority": "high",
-        "notes": "Weak topic detected after low quiz performance.",
-        "created_at": datetime.now(timezone.utc)
-    })
-
-
-def _create_auto_reminder(user_id, email, subject):
-    reminder_time = _make_review_reminder_time()
-    reminders_collection.insert_one({
-        "user": {
-            "id": str(user_id),
-            "email": email
-        },
-        "title": f"Review weak topic: {subject}",
-        "time": reminder_time,
-        "priority": "High",
-        "auto": True,
-        "notify_flags": {},
-        "created_at": datetime.now(timezone.utc)
-    })
-
-    if email:
-        subject_line = f"Study reminder created for {subject}"
-        body = (
-            f"Hello,\n\n"
-            f"Based on a recent quiz result, a study reminder for \"{subject}\" has been scheduled for {reminder_time.strftime('%Y-%m-%d %H:%M UTC')}.\n\n"
-            "Please review the topic to strengthen your understanding.\n\n"
-            "— Smart Study Planner"
-        )
-        send_email(email, subject_line, body)
-
-    return reminder_time
-
+    return jsonify(questions)
 
 @quiz_bp.route('/submit', methods=['POST'])
 def submit_quiz():
-    # Get user_id from session (try both formats)
-    user_id = None
-    if 'user_id' in session:
-        user_id = session['user_id']
-    elif 'user' in session and isinstance(session['user'], dict) and session['user'].get('id'):
-        user_id = session['user'].get('id')
-    
+    data = request.get_json()
+    user_id = session.get("user", {}).get("id")
+    user_email = session.get("user", {}).get("email")
+    user_name = session.get("user", {}).get("name", "there")
+
     if not user_id:
         return jsonify({"error": "User not logged in"}), 401
 
-    data = request.get_json()
     subject = data.get('subject', 'General')
-    score = data.get('score', 0)
-    total = data.get('total', 1)
-    correct = data.get('correct', 0)
-    time_taken = data.get('time_taken', 0)
+    score = data.get('score', 0)  # Percentage 0-100
 
-    # ✅ Save in DB with required fields
-    today = datetime.now().date().isoformat()
+    # Save quiz result
     quiz_result = {
-        "user_id": str(user_id),  # Store as string for consistency
+        "user_id": str(user_id),
         "subject": subject,
-        "score": float(score),  # Percentage (0-100)
-        "raw_score": correct,
-        "total": total,
-        "time_taken_seconds": time_taken,
-        "date": today,
+        "score": float(score),
+        "date": datetime.now().date().isoformat(),
         "created_at": datetime.now(timezone.utc)
     }
-
     quizzes_collection.insert_one(quiz_result)
 
-    # ✅ Update user's quiz stats and weak topics
-    try:
-        user_obj_id = ObjectId(user_id) if isinstance(user_id, str) else user_id
+    # ── Auto-actions when score < 70% ──────────────────────────────────────
+    if float(score) < 70:
+        try:
+            import pytz
+            ist = pytz.timezone("Asia/Kolkata")
 
-        # Get current user to calculate new average
-        user = users_collection.find_one({'_id': user_obj_id})
-        if user:
-            current_quizzes_done = user.get('quizzes_done', 0)
-            current_avg_score = user.get('average_score', 0)
-
-            # Calculate new average
-            new_total_quizzes = current_quizzes_done + 1
-            new_avg_score = ((current_avg_score * current_quizzes_done) + float(score)) / new_total_quizzes
-
-            update_payload = {
-                'quizzes_done': new_total_quizzes,
-                'average_score': round(new_avg_score, 2)
-            }
-
-            if float(score) < LOW_PERFORMANCE_THRESHOLD:
-                update_payload.setdefault('weak_subjects', [])
-                users_collection.update_one(
-                    {'_id': user_obj_id},
-                    {'$addToSet': {'weak_subjects': subject}}
-                )
-
-                user_email = session.get('user', {}).get('email')
-                _create_weak_topic_task(user_id, subject)
-                _create_auto_reminder(user_id, user_email, subject)
-
-            users_collection.update_one(
-                {'_id': user_obj_id},
-                {'$set': update_payload}
+            # Schedule reminder for tomorrow at 9:00 AM IST
+            now_ist = datetime.now(ist)
+            reminder_time_ist = (now_ist + timedelta(days=1)).replace(
+                hour=9, minute=0, second=0, microsecond=0
             )
-    except Exception as e:
-        print(f"Error updating user stats: {str(e)}")
+            reminder_time_utc = reminder_time_ist.astimezone(timezone.utc)
+            reminder_title = f"Revise {subject} (Quiz score: {int(score)}%)"
 
-    # ✅ Auto log activity
-    try:
-        log_activity(str(user_id), "quiz_completed", {"subject": subject, "score": score})
-    except Exception:
-        pass
+            # 1. Add reminder to reminders_collection
+            reminders_collection.insert_one({
+                "user_id": user_id,
+                "email": user_email,
+                "title": reminder_title,
+                "time": reminder_time_utc,
+                "auto": True,
+                "source": "quiz_low_score",
+                "created_at": datetime.now(timezone.utc)
+            })
 
-    return jsonify({"success": True, "message": "Quiz submitted successfully"})
+            # 2. Add subject to planner (user's subjects list)
+            users_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$addToSet": {"subjects": subject}}
+            )
+
+            # 3. Send notification email
+            if user_email:
+                display_time = reminder_time_ist.strftime("%d %b %Y at %I:%M %p IST")
+                email_subject = f"📚 Study Reminder Set: {subject}"
+                email_body = (
+                    f"Hi {user_name},\n\n"
+                    f"You scored {int(score)}% on your {subject} quiz — keep going, you've got this!\n\n"
+                    f"To help you improve, we've automatically:\n"
+                    f"  \u2705 Added '{subject}' to your Planner\n"
+                    f"  \u23f0 Set a revision reminder for {display_time}\n\n"
+                    f"Keep pushing \u2014 consistency is the key to mastery.\n\n"
+                    f"\u2014 StudyBuddy"
+                )
+                send_email(user_email, email_subject, email_body)
+
+        except Exception as e:
+            # Never let auto-actions break the quiz submission response
+            print(f"[QUIZ] Auto-reminder error: {e}", flush=True)
+
+    else:
+        # ── Score >= 70%: subject mastered — clean up planner & reminders ──
+        try:
+            # Remove subject from user's planner subjects list
+            users_collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$pull": {"subjects": subject}}
+            )
+
+            # Remove any auto-set reminders for this subject
+            reminders_collection.delete_many({
+                "user_id": user_id,
+                "source": "quiz_low_score",
+                "title": {"$regex": f"Revise {subject}", "$options": "i"}
+            })
+
+        except Exception as e:
+            print(f"[QUIZ] Auto-cleanup error: {e}", flush=True)
+    # ───────────────────────────────────────────────────────────────────────
+
+    return jsonify({
+        "success": True,
+        "message": "Quiz submitted and analyzed.",
+        "auto_reminder": float(score) < 70
+    })
 
 # @quiz_bp.route('/submit', methods=['POST'])
 # def submit_quiz():

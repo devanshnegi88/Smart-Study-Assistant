@@ -47,16 +47,16 @@ def compute_stats(user_id):
 
     velocity = round((total_topics / total_time), 2) if total_time > 0 else 0
 
-    # AI Suggested subjects (weak subjects)
+    # AI Suggested subjects (weak subjects only — score < 70%)
     suggested = []
     for s in subjects:
-        if s['average_score'] < 60 or s['count'] < 3:
+        if s['average_score'] < 70:
             suggested.append({
                 "subject": s['subject'],
                 "score": s['average_score'],
                 "priority": (
                     "High" if s['average_score'] < 40 else
-                    "Medium" if s['average_score'] < 70 else "Low"
+                    "Medium" if s['average_score'] < 60 else "Low"
                 )
             })
 
@@ -103,6 +103,7 @@ def log_study_activity(user_id, subject, duration=0, topics_completed=0, total_t
 # 📌 3. Auto Track Time
 # -------------------------------------------------------------
 @planner_bp.route('/auto-time-log', methods=['POST'])
+@planner_bp.route('/track-time', methods=['POST'])
 def auto_time_log():
     if 'user' not in session:
         return jsonify({"error": "User not logged in"}), 401
@@ -245,58 +246,58 @@ def dashboard_data():
     })
 
 
-# -------------------------------------------------------------
-# 📌 Subject Details API for modal
-# -------------------------------------------------------------
-@planner_bp.route('/subject/<name>/details')
-def subject_details(name):
-    if 'user' not in session:
-        return jsonify({"error": "User not logged in"}), 401
+# # -------------------------------------------------------------
+# # 📌 Subject Details API for modal
+# # -------------------------------------------------------------
+# @planner_bp.route('/subject/<name>/details')
+# def subject_details(name):
+#     if 'user' not in session:
+#         return jsonify({"error": "User not logged in"}), 401
 
-    user_id = ObjectId(session['user']['id'])
-    today = datetime.now().date()
+#     user_id = ObjectId(session['user']['id'])
+#     today = datetime.now().date()
 
-    # Recent quizzes for this subject (limit 10)
-    recent_qs = list(quizzes_collection.find({
-        'user_id': user_id,
-        'subject': name
-    }).sort('created_at', -1).limit(10))
+#     # Recent quizzes for this subject (limit 10)
+#     recent_qs = list(quizzes_collection.find({
+#         'user_id': user_id,
+#         'subject': name
+#     }).sort('created_at', -1).limit(10))
 
-    recent = []
-    for q in recent_qs:
-        recent.append({
-            'date': q.get('date', q.get('created_at', '')).isoformat() if isinstance(q.get('created_at', ''), datetime) else q.get('date', q.get('created_at', '')),
-            'score': q.get('score', 0)
-        })
+#     recent = []
+#     for q in recent_qs:
+#         recent.append({
+#             'date': q.get('date', q.get('created_at', '')).isoformat() if isinstance(q.get('created_at', ''), datetime) else q.get('date', q.get('created_at', '')),
+#             'score': q.get('score', 0)
+#         })
 
-    # Today's study minutes for this subject
-    today_record = study_sessions_col.find_one({
-        'user_id': user_id,
-        'subject': name,
-        'date': today.isoformat()
-    })
-    today_minutes = round(today_record.get('duration', 0), 1) if today_record else 0
+#     # Today's study minutes for this subject
+#     today_record = study_sessions_col.find_one({
+#         'user_id': user_id,
+#         'subject': name,
+#         'date': today.isoformat()
+#     })
+#     today_minutes = round(today_record.get('duration', 0), 1) if today_record else 0
 
-    # Weekly minutes per day for this subject
-    weekly = []
-    for i in range(7):
-        d = today - timedelta(days=6 - i)
-        minutes = sum(s.get('duration', 0) for s in study_sessions_col.find({'user_id': user_id, 'subject': name, 'date': d.isoformat()}))
-        weekly.append(round(minutes, 1))
+#     # Weekly minutes per day for this subject
+#     weekly = []
+#     for i in range(7):
+#         d = today - timedelta(days=6 - i)
+#         minutes = sum(s.get('duration', 0) for s in study_sessions_col.find({'user_id': user_id, 'subject': name, 'date': d.isoformat()}))
+#         weekly.append(round(minutes, 1))
 
-    # Average score & count for this subject
-    all_scores = [q.get('score', 0) for q in list(quizzes_collection.find({'user_id': user_id, 'subject': name}))]
-    count = len(all_scores)
-    avg = round(sum(all_scores) / count, 1) if count else 0
+#     # Average score & count for this subject
+#     all_scores = [q.get('score', 0) for q in list(quizzes_collection.find({'user_id': user_id, 'subject': name}))]
+#     count = len(all_scores)
+#     avg = round(sum(all_scores) / count, 1) if count else 0
 
-    return jsonify({
-        'subject': name,
-        'recent_quizzes': recent,
-        'today_minutes': today_minutes,
-        'weekly_minutes': weekly,
-        'average_score': avg,
-        'quiz_count': count
-    })
+#     return jsonify({
+#         'subject': name,
+#         'recent_quizzes': recent,
+#         'today_minutes': today_minutes,
+#         'weekly_minutes': weekly,
+#         'average_score': avg,
+#         'quiz_count': count
+#     })
 
 
 # -------------------------------------------------------------
@@ -383,3 +384,6 @@ def add_planner_reminder():
         print("[PLANNER] ⚠ No email found for user", flush=True)
 
     return jsonify({"success": True})
+@planner_bp.route("/generate-plan", methods=["POST"])
+def generate_plan():
+    return jsonify({"error": "Plan generation is temporarily disabled."}), 503

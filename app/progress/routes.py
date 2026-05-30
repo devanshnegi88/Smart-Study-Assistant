@@ -46,7 +46,7 @@ def weekly_data():
     logs=progress_collection.find_one({'email':session['email']})
     weekly_data={}
     for log in logs:
-        weekly_data=[log['day']]=log['minutes']
+        weekly_data[log['day']]=log['minutes']
 
     return jsonify({'weekly_data':weekly_data})  
 
@@ -59,3 +59,10 @@ def progress():
         return redirect(url_for('auth.login'))
     
     return render_template('progress.html')
+
+@progress_bp.route('/ai-insights', methods=['GET'])
+def ai_insights():
+    if 'user' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    return jsonify({"error": "AI insights temporarily disabled."}), 503

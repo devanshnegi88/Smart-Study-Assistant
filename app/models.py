@@ -1,45 +1,16 @@
-from app.extensions import db
+from pymongo import MongoClient
+import os
 
+# Use environment variable or hardcoded fallback for development
+MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://devanshn180_db_user:FkbFeDStf4-RK4G@cluster0.njdxavv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 
-users_collection=db['users']
-reminders_collection=db['reminders']
-progress_collection=db['progress']
-planner_collection = db["planner"]
+client = MongoClient(MONGO_URI)
+db = client['study']
 
-quizzes_collection = db["quizzes"]
-form_collection = db["form_collection"]
-study_sessions_col = db["study_sessions"]
-quiz_results_col = db["quiz_results"]
-tasks_col = db["tasks"]
-subjects_col = db["subjects"]
-
-tasks_collection = db['tasks']
+users_collection = db['users']
+reminders_collection = db['reminders']
 quizzes_collection = db['quizzes']
-
-# from app.extensions import get_db
-# import sqlite3
-
-# class UserCollection:
-#     @staticmethod
-#     def find_one(query):
-#         db = get_db()
-#         cursor = db.execute(
-#             "SELECT * FROM users WHERE email = ? AND password = ?", 
-#             (query.get('email'), query.get('password'))
-#         )
-#         return cursor.fetchone()
-
-#     @staticmethod
-#     def insert_one(data):
-#         db = get_db()
-#         try:
-#             db.execute(
-#                 "INSERT INTO users (email, password) VALUES (?, ?)", 
-#                 (data.get('email'), data.get('password'))
-#             )
-#             db.commit()
-#         except sqlite3.IntegrityError:
-#             return None
-
-# users_collection = UserCollection()
-
+tasks_collection = db['tasks']
+study_sessions_col = db['study_sessions']
+progress_collection = db['progress']
+form_collection = db['form']

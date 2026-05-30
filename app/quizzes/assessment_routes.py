@@ -8,7 +8,7 @@ assessment_bp = Blueprint('assessment', __name__)
 
 # Configure Gemini
 genai.configure(api_key=os.getenv('GOOGLE_API_KEY'))
-model = genai.GenerativeModel('gemini-2.5-flash-lite')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 @assessment_bp.route('/quiz/assessment')
 def show_assessment_quiz():

@@ -12,7 +12,7 @@ chatbot_bp = Blueprint("chatbot", __name__, url_prefix="/chatbot")
 
 # ✅ Gemini API Setup
 GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY")
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent"
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent"
 
 if not GEMINI_API_KEY:
     raise ValueError("❌ GEMINI_API_KEY missing! Please add it to your .env file.")

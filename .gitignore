@@ -4,6 +4,7 @@ __pycache__/
 *.so
 .Python
 env/
+
 build/
 develop-eggs/
 dist/
@@ -18,7 +19,7 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
-.env
+.env*
 .venv
 venv/
 ENV/
@@ -26,3 +27,5 @@ ENV/
 .vscode/
 *.sqlite3
 *.db
+__pycache__
+*.pyc   

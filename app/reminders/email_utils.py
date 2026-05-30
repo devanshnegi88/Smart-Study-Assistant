@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import os
 import smtplib
 from email.message import EmailMessage
@@ -6,7 +5,9 @@ from dotenv import load_dotenv
 import traceback
 import sys
 
-load_dotenv()
+# Resolve .env from project root (two levels up from this file: app/reminders/ -> app/ -> project/)
+_env_path = os.path.join(os.path.dirname(__file__), "..", "..", ".env")
+load_dotenv(os.path.normpath(_env_path), override=True)
 
 MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
 MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
@@ -19,8 +20,8 @@ MAIL_FROM = os.getenv("MAIL_DEFAULT_SENDER", MAIL_USERNAME)
 # Debug: Print loaded config
 sys.stderr.write(f"[EMAIL CONFIG] MAIL_SERVER={MAIL_SERVER}, MAIL_PORT={MAIL_PORT}, MAIL_USE_TLS={MAIL_USE_TLS}, MAIL_USE_SSL={MAIL_USE_SSL}\n")
 sys.stderr.write(f"[EMAIL CONFIG] MAIL_USERNAME={'***' if MAIL_USERNAME else 'NOT SET'}, MAIL_PASSWORD={'***' if MAIL_PASSWORD else 'NOT SET'}\n")
+sys.stderr.write(f"[EMAIL CONFIG] Password first 4 chars: {MAIL_PASSWORD[:4] if MAIL_PASSWORD else 'NONE'}, .env loaded from: {os.path.normpath(_env_path)}\n")
 sys.stderr.flush()
-
 
 def send_email(to_email: str, subject: str, body: str) -> bool:
     if not MAIL_USERNAME or not MAIL_PASSWORD:
@@ -68,33 +69,3 @@ def send_email(to_email: str, subject: str, body: str) -> bool:
         sys.stderr.flush()
         traceback.print_exc(file=sys.stderr)
         return False
-=======
-# import smtplib
-# from email.mime.text import MIMEText
-# from email.mime.multipart import MIMEMultipart
-# import os
-
-# EMAIL_USER = os.getenv("MAIL_USERNAME")
-# EMAIL_PASS = os.getenv("MAIL_PASSWORD")
-
-# def send_email(to_email, subject, body):
-#     msg = MIMEMultipart()
-#     msg["From"] = EMAIL_USER
-#     msg["To"] = to_email
-#     msg["Subject"] = subject
-
-#     msg.attach(MIMEText(body, "plain"))
-
-#     try:
-#         server = smtplib.SMTP("smtp.gmail.com", 587)
-#         server.starttls()
-#         server.login(EMAIL_USER, EMAIL_PASS)
-#         server.sendmail(EMAIL_USER, to_email, msg.as_string())
-#         server.quit()
-#         print(f"[EMAIL SENT] {to_email} -> {subject}")
-#         return True
-
-#     except Exception as e:
-#         print("[EMAIL FAILED]", e)
-#         return False
->>>>>>> 84e29029a03bff646e1397431a9616823050952e
