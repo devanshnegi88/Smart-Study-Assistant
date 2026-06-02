@@ -20,8 +20,8 @@ def create_app():
     app.config["MAIL_SERVER"] = os.getenv("MAIL_SERVER", "smtp.gmail.com")
     app.config["MAIL_PORT"] = int(os.getenv("MAIL_PORT", 587))
     app.config["MAIL_USE_TLS"] = os.getenv("MAIL_USE_TLS", "true").lower() == "true"
-    app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME", "devanshnegi88@gmail.com")
-    app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD", "smle srpj twai myyb")
+    app.config["MAIL_USERNAME"] = os.getenv("MAIL_USERNAME")
+    app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
     app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER", "devanshnegi88@gmail.com")
 
     mail.init_app(app)
@@ -68,11 +68,11 @@ def create_app():
     from app.quizzes.assessment_routes import assessment_bp
     app.register_blueprint(assessment_bp)
 
-    # @app.route('/')
+    @app.route('/')
     
-    # def home():
+    def home():
         
-    #         return render_template('home.html')
+            return render_template('home.html')
 
 
 
