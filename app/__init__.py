@@ -10,7 +10,10 @@ load_dotenv()
 mail = Mail()
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(
+    __name__,
+    template_folder="Templates"
+)
     app.secret_key = 'your-secret-key'
 
     # Configure Flask-Mail from env vars or fallback defaults
