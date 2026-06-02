@@ -1,7 +1,7 @@
 
 
 
-from flask import Flask,session,render_template
+from flask import Flask, render_template
 from flask_mail import Mail
 import os
 from dotenv import load_dotenv

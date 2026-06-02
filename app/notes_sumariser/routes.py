@@ -187,25 +187,11 @@ def summarise_youtube():
 
         # Always download the video and run faster-whisper.
         # This guarantees consistent transcription even when transcripts are disabled.
-        # cookies_file = os.getenv("YT_DLP_COOKIES_FILE.txt")
-        # if not cookies_file:
-        #     return jsonify({
-        #         "error": "YT_DLP_COOKIES_FILE is not configured.",
-        #         "hint": "Set YT_DLP_COOKIES_FILE to a netscape-format cookies.txt so yt-dlp can download the audio/video."
-        #     }), 400
-
-        # if not os.path.exists(cookies_file):
-        #     return jsonify({
-        #         "error": "YT_DLP_COOKIES_FILE does not exist on the server.",
-        #         "cookies_file": cookies_file
-        #     }), 500
-
         print("Downloading YouTube video for faster-whisper transcription...")
         video_path = os.path.join(temp_dir, "%(title)s.%(ext)s")
         ydl_opts = {
             "outtmpl": video_path,
             "format": "best[ext=mp4]/best",
-            # "cookiefile": cookies_file,
             "quiet": False,
             "no_warnings": False,
         }
