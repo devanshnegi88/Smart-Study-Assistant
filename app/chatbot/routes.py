@@ -4,6 +4,9 @@ from datetime import datetime
 from bson import ObjectId
 from dotenv import load_dotenv
 from app.models import users_collection  # ✅ Import MongoDB collection
+import google.generativeai as genai
+
+
 
 # ✅ Load environment variables
 load_dotenv()
@@ -11,11 +14,13 @@ load_dotenv()
 chatbot_bp = Blueprint("chatbot", __name__, url_prefix="/chatbot")
 
 # ✅ Gemini API Setup
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent"
+import google.generativeai as genai
 
-if not GOOGLE_API_KEY:
-    raise ValueError("❌ GEMINI_API_KEY missing! Please add it to your .env file.")
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+# GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent"
+
+# if not GOOGLE_API_KEY:
+#     raise ValueError("❌ GEMINI_API_KEY missing! Please add it to your .env file.")
 
 
 @chatbot_bp.route("/")
@@ -86,24 +91,25 @@ def chatbot_api():
 
     # ✅ Send request to Gemini API
     try:
-        response = requests.post(
-            f"{GEMINI_API_URL}?key={GOOGLE_API_KEY}",
-            headers={"Content-Type": "application/json"},
-            json=payload
-        )
-        response.raise_for_status()
-        result = response.json()
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content(
+            f"""
+            You are an AI study assistant.
+            Answer only study-related or educational questions clearly and concisely.
+            If the user asks something unrelated to academics, politely decline.
 
-        # ✅ Extract reply
-        reply = (
-            result.get("candidates", [{}])[0]
-            .get("content", {})
-            .get("parts", [{}])[0]
-            .get("text", "Sorry, no response found.")
+            User: {user_message}
+            """
         )
-
-        return jsonify({"response": reply})
+        return jsonify({
+            "response": response.text
+        })
 
     except Exception as e:
-        print("Error:", e)
-        return jsonify({"error": "Something went wrong with the Gemini API."}), 500
+        print("Gemini Error:", str(e))
+        return jsonify({
+            "error": str(e)
+        }), 500
+
+    
+
