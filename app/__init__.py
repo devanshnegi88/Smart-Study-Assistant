@@ -65,11 +65,11 @@ def create_app():
     from app.quizzes.assessment_routes import assessment_bp
     app.register_blueprint(assessment_bp)
 
-    @app.route('/')
+    # @app.route('/')
     
-    def home():
+    # def home():
         
-            return render_template('home.html')
+    #         return render_template('home.html')
 
 
 
