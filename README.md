@@ -1,10 +1,10 @@
-🎓 AI-Powered Smart Study Assistant
+# 🎓 AI-Powered Smart Study Assistant
 
 An intelligent learning platform designed to enhance student productivity and personalized learning through Artificial Intelligence. The system helps students manage studies efficiently with AI-powered assistance, smart planning, note management, quizzes, flashcards, and progress tracking.
 
 ---
 
-📌 Overview
+## 📌 Overview
 
 AI-Powered Smart Study Assistant is a web-based platform that combines Artificial Intelligence with productivity tools to create a personalized learning experience. The application assists students in organizing study schedules, generating summaries, creating quizzes and flashcards, tracking learning progress, and interacting with an AI assistant for academic support.
 
@@ -12,7 +12,7 @@ The goal of this project is to improve learning efficiency, increase productivit
 
 ---
 
-✨ Features
+## ✨ Features
 
 - 🤖 AI-Powered Study Assistant
 - 📅 Personalized Study Planner
@@ -26,25 +26,25 @@ The goal of this project is to improve learning efficiency, increase productivit
 
 ---
 
-🛠️ Technology Stack
+## 🛠️ Technology Stack
 
-Backend
+### Backend
 
 - Python
 - Flask
 - REST APIs
 
-Artificial Intelligence
+### Artificial Intelligence
 
 - OpenAI API / Gemini API
 - Prompt Engineering
 - Natural Language Processing
 
-Database
+### Database
 
 - Mongodb Atlas
 
-Frontend
+### Frontend
 
 - HTML5
 - CSS3
@@ -52,13 +52,13 @@ Frontend
 - Bootstrap
 - Jinja2
 
-Data Visualization
+### Data Visualization
 
 - Chart.js
 
 ---
 
-🏗️ System Architecture
+## 🏗️ System Architecture
 
 Student Input
       │
@@ -79,7 +79,7 @@ Dashboard & Analytics
 
 ---
 
-⚙️ System Workflow
+## ⚙️ System Workflow
 
 1. User registers and logs into the system.
 2. Student creates study plans and goals.
@@ -91,48 +91,46 @@ Dashboard & Analytics
 
 ---
 
-🧠 Key Modules
+## 🧠 Key Modules
 
-AI Study Assistant
+### AI Study Assistant
 
 Provides instant answers to academic questions using Large Language Models (LLMs).
 
-Study Planner
+### Study Planner
 
 Creates and manages personalized study schedules.
 
-Notes Summarization
+### Notes Summarization
 
 Converts lengthy videos into concise summaries using AI.
 
-Quiz Generator
+### Quiz Generator
 
 Automatically generates quizzes from notes and study materials.
 
-Creates flashcards for quick revision and active recall learning.
-
-Progress Tracker
+### Progress Tracker
 
 Tracks study activities and visualizes performance using charts.
 
-Reminder System
+### Reminder System
 
 Helps students stay consistent with scheduled study sessions.
 
 ---
 
-🚀 Installation
+## 🚀 Installation
 
-Clone Repository
+### Clone Repository
 
 git clone https://github.com/devanshnegi88/smart-study-assistant.git
 cd smart-study-assistant
 
-Create Virtual Environment
+### Create Virtual Environment
 
 python -m venv venv
 
-Activate Environment
+### Activate Environment
 
 Windows:
 
@@ -142,24 +140,24 @@ Linux/macOS:
 
 source venv/bin/activate
 
-Install Dependencies
+### Install Dependencies
 
 pip install -r requirements.txt
 
-Configure Environment Variables
+### Configure Environment Variables
 
 Create a ".env" file:
 
 OPENAI_API_KEY=your_api_key
 SECRET_KEY=your_secret_key
 
-Run Application
+### Run Application
 
 python -m app.run
 
 ---
 
-📊 Project Highlights
+## 📊 Project Highlights
 
 - Developed a full-stack AI-powered educational platform.
 - Integrated Large Language Models for academic assistance.
@@ -171,7 +169,7 @@ python -m app.run
 
 ---
 
-🔮 Future Enhancements
+## 🔮 Future Enhancements
 
 - 🤖 Multi-Agent AI System
 - 📚 Research Agent
@@ -182,10 +180,12 @@ python -m app.run
 
 ---
 
-👨‍💻 Author
+### 👨‍💻 Author
 
 Devansh
 
-GitHub: https://github.com/devanshnegi88
+### GitHub: 
+https://github.com/devanshnegi88
 
-LinkedIn: https://linkedin.com/in/devansh-negi005
+### LinkedIn:
+https://linkedin.com/in/devansh-negi005
