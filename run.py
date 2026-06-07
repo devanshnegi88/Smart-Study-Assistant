@@ -1,3 +1,5 @@
+import os
+# pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 import os
 from app import create_app

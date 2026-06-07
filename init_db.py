@@ -13,6 +13,3 @@ cursor.execute('''
 
 connection.commit()
 connection.close()
-
-
-W7W9ZAApPjr5739
