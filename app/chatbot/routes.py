@@ -4,7 +4,7 @@ from datetime import datetime
 from bson import ObjectId
 from dotenv import load_dotenv
 from app.models import users_collection  # ✅ Import MongoDB collection
-from google.generativeai import genai
+import google.generativeai as genai
 
 # ✅ Load environment variables
 load_dotenv()

@@ -1,14 +1,11 @@
-import google.genai as genai
-import os
-from dotenv import load_dotenv
+import google.generativeai as genai
 
-load_dotenv()
+API_KEY = "Ab8RN6LzLVjBYtVeVYv_cX8TILiAylqjbEk1hzcSGvrElFnCng"
 
-genai.configure(api_key="GOOGLE_API_KEY")
-print("Key exists:", bool(os.getenv("GOOGLE_API_KEY")))
-print("Key value:", os.getenv("GOOGLE_API_KEY"))
+genai.configure(api_key=API_KEY)
 
-model = genai.GenerativeModel("gemini-2.5-flash")
-response = model.generate_content("Say hello")
+model = genai.GenerativeModel("gemini-3.0-flash")
+
+response = model.generate_content("Hello")
 
 print(response.text)
