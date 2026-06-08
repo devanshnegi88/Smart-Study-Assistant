@@ -1,11 +1,8 @@
-import google.generativeai as genai
+from google import genai
 
-API_KEY = "Ab8RN6LzLVjBYtVeVYv_cX8TILiAylqjbEk1hzcSGvrElFnCng"
-
-genai.configure(api_key=API_KEY)
-
-model = genai.GenerativeModel("gemini-3.0-flash")
-
-response = model.generate_content("Hello")
-
+client = genai.Client(api_key="[ENCRYPTION_KEY]")
+response = client.models.generate_content(
+    model="gemini-2.0-flash",
+    contents="Hello"
+)
 print(response.text)

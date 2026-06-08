@@ -70,10 +70,18 @@ def get_whisper_model():
     whisper_loaded = True
     return whisper_model
 
+from urllib.parse import urlparse, parse_qs
+
 def extract_video_id(url):
-    pattern = r"(?:v=|\/)([0-9A-Za-z_-]{11}).*"
-    match = re.search(pattern, url)
-    return match.group(1) if match else None
+    parsed = urlparse(url)
+
+    if parsed.hostname == "youtu.be":
+        return parsed.path[1:]
+
+    if parsed.hostname in ("www.youtube.com", "youtube.com"):
+        return parse_qs(parsed.query).get("v", [None])[0]
+
+    return None
 
 def get_youtube_transcript(video_id):
     try:
